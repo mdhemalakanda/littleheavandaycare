@@ -41,9 +41,9 @@ docs/                  project documentation + research sources (this is NOT the
 - Photos are **hotlinked from the official Facebook/Instagram CDN** — no local copies.
   Signed URLs may expire; sources archived in `docs/research-sources/` for regeneration,
   and any failed image auto-swaps to a branded placeholder at runtime.
-- Videos/Reels play in a click-to-load modal via **Iframely embed.js**
+- Videos/Reels render as lazy inline **Iframely embed.js** embeds
   (`https://iframely.net/embed.js`, `data-iframely-url` = original post URL, `iframely.load()`
-  after insertion, timeout → honest fallback card with the original post link).
+  near the viewport, timeout → honest fallback card with the original post link).
   Generator preview URLs (`https://iframely.com/domains/{facebook|instagram}?url=…`)
   are derived dynamically for every item and shown in each video modal for QA.
 - Nothing is downloaded; nothing is re-hosted; every card links back to the original post.

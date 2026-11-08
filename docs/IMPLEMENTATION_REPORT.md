@@ -21,8 +21,10 @@ new JSON-LD ChildCare structured data with verified facts, new contact/social gr
   `embedHtml()` producing the official iframely-embed / iframely-responsive / a[data-iframely-url] structure,
   `render()` calling `iframely.load()` after insertion with a 12s timeout + MutationObserver failure signal.
 - `embed.js` loaded once per page (async, 23.7KB, verified HTTP 200).
-- Videos render as cards; playback is **click-to-load** in a modal (never hundreds of embeds on load);
-  every modal shows the original-post link + the Iframely generator preview link for QA.
+- Videos and stories render as cards with LAZY INLINE Iframely embeds (IntersectionObserver —
+  only cards near the viewport initialise, so pages never load hundreds of embeds at once);
+  every card keeps the original-post link. Generator preview URLs remain derivable per item
+  via iframely.js generatorUrl() for QA.
 - Fallbacks: pending-permalink cards (F7 Color Matching, F18 Transportation Week) render an honest
   source-link card instead of a black box; any failed embed swaps to a fallback panel with the source link.
 

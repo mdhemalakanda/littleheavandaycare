@@ -47,14 +47,14 @@ Text sections reference F6/F9/F11/F12/F13/F14 reels (watch on Videos page).
 | ig-20260708 DaiHxUbkxE2 | instagram.com/p/DaiHxUbkxE2/ | FALLBACK-READY |
 
 ## Videos (videos.html) — full collection, FB/IG filter chips
-FB (14 embedded): F1 1714043582992391 · F2 2704890733274188 · F3 2742547902778426 · F4 1665213335165756 ·
+FB (16 embedded, lazy inline): F1 1714043582992391 · F2 2704890733274188 · F3 2742547902778426 · F4 1665213335165756 ·
 F5 24875344582134317 · F6 1131473072699403 · F8 1854801555687143 · F9 2625944174521152 · F10 978271228109434 ·
 F11 2005025860186458 · F12 2163596741204824 · F13 2033264850625880 · F14 946962911468261 · F15 1161905819276238 ·
 F16 1505952047625714 · F17 1791231542231454 (16 total embedded)
 FB link-only (2): F7 Color Matching 3-Nov-2026 (newest, permalink not yet indexed) · F18 Transportation Week.
 IG (6 embedded): I1 DCt1YRMyxG_ · I2 DCtznlzyp3e · I3 DCtzVVGym1q · I4 Dbav5sMCX4z · I5 DbVmSraCFPa · I6 Da2tnOIk9mJ.
-Every card: platform badge, category, duration (where known), title/desc from real captions, generator
-preview link in the modal footer, and "Watch on Facebook/Instagram" source link.
+Every card: platform badge, category, duration (where known), title/desc from real captions,
+a lazy inline Iframely embed (renders near viewport), and a "Watch on Facebook/Instagram" source link.
 
 ## News (news.html + news-details.html) — 8 dated items
 F7→3 Nov (source link) · F6→31 Oct · F8→29 Oct (Aiza) · F9→29 Oct (shopping) · F4→26 Oct ·

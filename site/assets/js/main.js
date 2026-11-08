@@ -3,8 +3,9 @@
    Classic script (no modules) so the site works from file:// too.
    Depends on: i18n.js (LH_I18N), translations.js (LH_T),
                iframely.js (LH_IFRAMELY), data files (LH_DATA, LH_MEDIA).
-   Videos/Reels render via Iframely embed.js — click to load,
-   with an honest fallback card when an embed is unavailable.
+   Videos/Reels render as LAZY INLINE Iframely embeds (official
+   embed.js, rendered near the viewport) with honest fallback cards;
+   nothing is downloaded and every card links to the original post.
    ============================================================ */
 (function () {
   "use strict";
@@ -18,6 +19,10 @@
       .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   };
+
+  var FB_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.5 21v-8h2.7l.4-3.2h-3.1V7.7c0-.9.3-1.6 1.7-1.6h1.5V3.2c-.3 0-1.2-.1-2.3-.1-2.4 0-4 1.4-4 4v2.7H7.6V13h2.8v8h3.1Z"/></svg>';
+  var IG_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.2" fill="currentColor" stroke="none"/></svg>';
+  var CLOUD_ICON = '<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="rgba(63,169,217,.16)"/><ellipse cx="32" cy="16.5" rx="9" ry="3" fill="none" stroke="#FFC533" stroke-width="2.6"/><path d="M45 44H20a8 8 0 0 1-1.6-15.84A12 12 0 0 1 41.6 24 9 9 0 0 1 45 44Z" fill="#FFF9F1"/></svg>';
 
   /* ---------------- header / drawer / nav ---------------- */
   function initHeader() {
@@ -80,9 +85,6 @@
 
   /* ---------------- gallery + lightbox ---------------- */
   var galleryState = { filter: "all", lightboxList: [], lbIndex: 0 };
-
-  var FB_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.5 21v-8h2.7l.4-3.2h-3.1V7.7c0-.9.3-1.6 1.7-1.6h1.5V3.2c-.3 0-1.2-.1-2.3-.1-2.4 0-4 1.4-4 4v2.7H7.6V13h2.8v8h3.1Z"/></svg>';
-  var IG_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.2" fill="currentColor" stroke="none"/></svg>';
 
   function renderGallery() {
     var grid = $("[data-gallery-grid]");
@@ -184,8 +186,53 @@
     $(".lb-count", lb).textContent = (galleryState.lbIndex + 1) + " / " + galleryState.lightboxList.length;
   }
 
-  /* ---------------- videos via Iframely ---------------- */
-  var videoState = { platform: "all", list: [] };
+  /* ---------------- lazy inline Iframely embeds ---------------- */
+  var embedObserver = null;
+
+  function sourceLabel(url) {
+    return window.LH_I18N.t(window.LH_IFRAMELY.platformOf(url) === "instagram" ? "videos.watchOnIg" : "videos.watchOnFb");
+  }
+
+  function fallbackHtml(url) {
+    return '<div class="vm-fallback"><div class="vm-fb-icon">' + CLOUD_ICON + '</div>' +
+      '<p class="vm-fb-note">' + esc(window.LH_I18N.t("videos.fallbackNote")) + '</p>' +
+      '<div class="vm-fb-actions"><a class="btn btn-sky btn-sm" target="_blank" rel="noopener" href="' + esc(url) + '">' + esc(sourceLabel(url)) + ' ↗</a></div></div>';
+  }
+
+  function pendingHtml(pageUrl) {
+    return '<div class="vm-fallback"><div class="vm-fb-icon">' + CLOUD_ICON + '</div>' +
+      '<p class="vm-fb-note">' + esc(window.LH_I18N.t("videos.pendingNote")) + '</p>' +
+      '<div class="vm-fb-actions"><a class="btn btn-sky btn-sm" target="_blank" rel="noopener" href="' + esc(pageUrl) + '">' + esc(window.LH_I18N.t("videos.watchOnFb")) + ' ↗</a></div></div>';
+  }
+
+  function mountEmbed(host) {
+    if (host.dataset.mounted) return;
+    host.dataset.mounted = "1";
+    var url = host.getAttribute("data-embed-url");
+    var title = host.getAttribute("data-embed-title") || "Video";
+    window.LH_IFRAMELY.render(host, url, title, function (ok) {
+      if (!ok) { host.innerHTML = fallbackHtml(url); }
+    });
+  }
+
+  function observeEmbeds() {
+    var hosts = $$("[data-embed-url]");
+    if (!hosts.length) return;
+    if (!("IntersectionObserver" in window)) { hosts.forEach(mountEmbed); return; }
+    if (!embedObserver) {
+      embedObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          embedObserver.unobserve(en.target);
+          mountEmbed(en.target);
+        });
+      }, { rootMargin: "300px 0px" });
+    }
+    hosts.forEach(function (host) { embedObserver.observe(host); });
+  }
+
+  /* ---------------- videos ---------------- */
+  var videoState = { platform: "all" };
 
   function currentVideos() {
     return LH_DATA.videos.filter(function (v) {
@@ -193,13 +240,10 @@
     });
   }
 
-  function thumbHtml(v, cls) {
-    if (v.thumb) {
-      return '<img src="' + esc(v.thumb) + '" alt="" loading="lazy" referrerpolicy="no-referrer">';
-    }
-    return '<span class="vc-placeholder ' + (cls || '') + '" aria-hidden="true">' +
-      '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="rgba(255,255,255,.14)"/><ellipse cx="32" cy="16.5" rx="9" ry="3" fill="none" stroke="#FFC533" stroke-width="2.6"/><path d="M45 44H20a8 8 0 0 1-1.6-15.84A12 12 0 0 1 41.6 24 9 9 0 0 1 45 44Z" fill="rgba(255,255,255,.85)"/></svg>' +
-      '</span>';
+  function platformBadge(p) {
+    return p === "instagram"
+      ? '<span class="vc-platform p-ig">' + IG_ICON + 'Instagram</span>'
+      : '<span class="vc-platform p-fb">' + FB_ICON + 'Facebook</span>';
   }
 
   function renderVideos() {
@@ -207,26 +251,28 @@
     if (!grid || !window.LH_DATA || !LH_DATA.videos) return;
     var lim = parseInt(grid.getAttribute("data-limit") || "0", 10);
     var list = currentVideos().slice(0, lim > 0 ? lim : currentVideos().length);
-    videoState.list = list;
     grid.innerHTML = list.map(function (v, i) {
-      var badge = v.platform === "instagram" ? '<span class="vc-platform p-ig">' + IG_ICON + 'Instagram</span>' : '<span class="vc-platform p-fb">' + FB_ICON + 'Facebook</span>';
-      var pending = v.status === "pending-permalink";
       var catLabel = window.LH_I18N.t("videos.cat." + (v.cat || "learning"));
-      return '<article class="video-card reveal" data-vi="' + i + '" style="transition-delay:' + (i * 0.06) + 's">' +
-        '<div class="vc-thumb' + (v.thumb ? '' : ' no-thumb') + '">' + thumbHtml(v) +
-        '<button class="vc-play-btn" aria-label="' + esc(window.LH_I18N.t("videos.play")) + '"><span class="vc-play"></span></button>' +
-        badge +
-        (v.dur ? '<span class="vc-duration">' + esc(v.dur) + '</span>' : "") +
-        '</div>' +
-        '<div class="vc-body"><span class="vc-cat">' + esc(catLabel) + '</span>' +
+      var embedArea;
+      if (v.status === "pending-permalink" || !v.originalUrl) {
+        embedArea = '<div class="vc-embed">' + pendingHtml(v.pageUrl || "https://www.facebook.com/littleheavendaycarepreschool/videos") + '</div>';
+      } else {
+        embedArea = '<div class="vc-embed" data-embed-url="' + esc(v.originalUrl) + '" data-embed-title="' + esc(pick(v, LANG())) + '"></div>';
+      }
+      var srcLink = v.originalUrl
+        ? '<a class="vc-source" target="_blank" rel="noopener" href="' + esc(v.originalUrl) + '">' + esc(sourceLabel(v.originalUrl)) + ' ↗</a>'
+        : "";
+      var head = '<span class="vc-head">' + platformBadge(v.platform) +
+        (v.dur ? '<span class="vc-duration-inline">' + esc(v.dur) + '</span>' : "") +
+        '<span class="vc-cat">' + esc(catLabel) + '</span></span>';
+      return '<article class="video-card reveal" style="transition-delay:' + (i * 0.06) + 's">' +
+        embedArea +
+        '<div class="vc-body">' + head +
         '<h3>' + esc(pick(v, LANG())) + '</h3><p>' + esc(pick(v, LANG(), "d")) + '</p>' +
-        (pending ? '<a class="vc-source" target="_blank" rel="noopener" href="' + esc(v.pageUrl || "https://www.facebook.com/littleheavendaycarepreschool/videos") + '">' + esc(window.LH_I18N.t("videos.pendingNote")) + ' ↗</a>' : '') +
-        '</div></article>';
+        srcLink + '</div></article>';
     }).join("");
     initReveal();
-    $$("article.video-card", grid).forEach(function (card) {
-      card.addEventListener("click", function () { openVideoModal(parseInt(card.getAttribute("data-vi"), 10)); });
-    });
+    observeEmbeds();
   }
 
   function initVideoFilters() {
@@ -244,100 +290,6 @@
     });
   }
 
-  function ensureVideoModal() {
-    if ($(".video-modal")) return $(".video-modal");
-    var vm = document.createElement("div");
-    vm.className = "video-modal";
-    vm.innerHTML =
-      '<div class="vm-body">' +
-      '  <button class="vm-x" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="20" height="20"><path d="M18 6L6 18M6 6l12 12"/></svg></button>' +
-      '  <div class="vm-frame"></div>' +
-      '  <div class="vm-fallback" hidden>' +
-      '    <div class="vm-fb-icon"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#3FA9D9" opacity=".15"/><ellipse cx="32" cy="16.5" rx="9" ry="3" fill="none" stroke="#FFC533" stroke-width="2.6"/><path d="M45 44H20a8 8 0 0 1-1.6-15.84A12 12 0 0 1 41.6 24 9 9 0 0 1 45 44Z" fill="#FFF9F1" stroke="#3FA9D9"/></svg></div>' +
-      '    <p class="vm-fb-note"></p>' +
-      '    <div class="vm-fb-actions"></div>' +
-      '  </div>' +
-      '  <div class="vm-info"><h3></h3><p></p>' +
-      '    <div class="vm-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span data-i18n="videos.embedNote"></span></div>' +
-      '    <div class="vm-actions">' +
-      '      <a class="btn btn-primary btn-sm vm-source" target="_blank" rel="noopener" href="#"></a>' +
-      '      <button class="btn btn-ghost btn-sm vm-close-btn"><span data-i18n="common.close"></span></button>' +
-      '      <a class="vm-generator" target="_blank" rel="noopener" href="#" data-i18n="videos.generator"></a>' +
-      '    </div>' +
-      '  </div>' +
-      '</div>';
-    document.body.appendChild(vm);
-    vm.addEventListener("click", function (e) { if (e.target === vm) closeVideoModal(); });
-    $(".vm-close-btn", vm).addEventListener("click", closeVideoModal);
-    $(".vm-x", vm).addEventListener("click", closeVideoModal);
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && vm.classList.contains("open")) closeVideoModal();
-    });
-    return vm;
-  }
-
-  function showFallback(vm, note, links) {
-    var fb = $(".vm-fallback", vm);
-    fb.hidden = false;
-    $(".vm-fb-note", fb).textContent = note;
-    $(".vm-fb-actions", fb).innerHTML = links.map(function (l) {
-      return '<a class="btn btn-sky btn-sm" target="_blank" rel="noopener" href="' + esc(l.href) + '">' + esc(l.label) + '</a>';
-    }).join("");
-  }
-
-  function openVideoModal(i) {
-    var v = videoState.list[i];
-    if (!v) return;
-    var vm = ensureVideoModal();
-    var fb = $(".vm-fallback", vm); fb.hidden = true;
-    $(".vm-frame", vm).innerHTML = "";
-    var source = $(".vm-source", vm);
-    var gen = $(".vm-generator", vm);
-    var title = pick(v, LANG());
-
-    if (v.status === "pending-permalink" || !v.originalUrl) {
-      showFallback(vm, window.LH_I18N.t("videos.pendingNote"),
-        [{ href: v.pageUrl || "https://www.facebook.com/littleheavendaycarepreschool/videos", label: window.LH_I18N.t("videos.watchOnFb") }]);
-    } else {
-      var platform = window.LH_IFRAMELY.platformOf(v.originalUrl) || v.platform;
-      var gurl = window.LH_IFRAMELY.generatorUrl(platform, v.originalUrl);
-      if (gurl) { gen.href = gurl; gen.style.display = "inline-flex"; } else { gen.style.display = "none"; }
-      var canEmbed = window.LH_IFRAMELY.isAllowed(v.originalUrl);
-      if (!canEmbed) {
-        showFallback(vm, window.LH_I18N.t("videos.fallbackNote"),
-          [{ href: v.originalUrl, label: platform === "instagram" ? window.LH_I18N.t("videos.watchOnIg") : window.LH_I18N.t("videos.watchOnFb") }]);
-      } else {
-        $(".vm-frame", vm).innerHTML = window.LH_IFRAMELY.embedHtml(v.originalUrl, title);
-        window.LH_IFRAMELY.render($(".vm-frame", vm), v.originalUrl, title, function (ok) {
-          if (!ok) {
-            $(".vm-frame", vm).innerHTML = "";
-            showFallback(vm, window.LH_I18N.t("videos.fallbackNote"),
-              [{ href: v.originalUrl, label: platform === "instagram" ? window.LH_I18N.t("videos.watchOnIg") : window.LH_I18N.t("videos.watchOnFb") }]);
-          }
-        });
-      }
-      source.href = v.originalUrl;
-      source.innerHTML = platform === "instagram"
-        ? '<span data-i18n="videos.watchOnIg"></span>'
-        : '<span data-i18n="videos.watchOnFb"></span>';
-      localizeInjected(vm);
-    }
-
-    $(".vm-info h3", vm).textContent = title;
-    $(".vm-info p", vm).textContent = pick(v, LANG(), "d");
-    localizeInjected(vm);
-    vm.classList.add("open");
-    document.body.style.overflow = "hidden";
-  }
-
-  function closeVideoModal() {
-    var vm = $(".video-modal");
-    if (!vm) return;
-    $(".vm-frame", vm).innerHTML = "";
-    vm.classList.remove("open");
-    document.body.style.overflow = "";
-  }
-
   /* ---------------- stories (real reels) ---------------- */
   function renderStories() {
     var grid = $("[data-stories-grid]");
@@ -349,28 +301,22 @@
     grid.innerHTML = list.map(function (s, i) {
       var v = LH_DATA.videos.find(function (x) { return x.id === s.videoId; });
       if (!v) return "";
-      var badge = v.platform === "instagram" ? '<span class="sc-platform p-ig">' + IG_ICON + '</span>' : '<span class="sc-platform p-fb">' + FB_ICON + '</span>';
-      var kindLabel = s.kind === "teacher" ? "teacher" : "parent";
-      return '<article class="story-card reveal" data-story="' + esc(s.videoId) + '" style="transition-delay:' + (i * 0.06) + 's">' +
-        '<div class="sc-thumb">' + thumbHtml(v, "sc-ph") + badge +
-        '<button class="vc-play-btn" aria-label="' + esc(window.LH_I18N.t("videos.play")) + '"><span class="vc-play"></span></button></div>' +
-        '<div class="sc-body"><p>' + esc(pick(s, LANG())) + '</p><span>' + esc(pick(s, LANG(), "d")) + '</span>' +
-        '<span class="sc-kind k-' + kindLabel + '">' + esc(kindLabel === "teacher" ? (LANG() === "bn" ? "শিক্ষিকা" : "Teacher") : (LANG() === "bn" ? "অভিভাবক" : "Parent")) + '</span></div>' +
-        '</article>';
+      var kindLabel = s.kind === "teacher"
+        ? (LANG() === "bn" ? "শিক্ষিকা" : "Teacher")
+        : (LANG() === "bn" ? "অভিভাবক" : "Parent");
+      var embedArea = (v.originalUrl && v.status === "confirmed")
+        ? '<div class="vc-embed" data-embed-url="' + esc(v.originalUrl) + '" data-embed-title="' + esc(pick(s, LANG())) + '"></div>'
+        : '<div class="vc-embed">' + pendingHtml(v.pageUrl || "https://www.facebook.com/littleheavendaycarepreschool/videos") + '</div>';
+      return '<article class="story-card reveal" style="transition-delay:' + (i * 0.06) + 's">' +
+        embedArea +
+        '<div class="sc-body"><span class="vc-head">' + platformBadge(v.platform) +
+        '<span class="sc-kind k-' + s.kind + '">' + esc(kindLabel) + '</span></span>' +
+        '<p>' + esc(pick(s, LANG())) + '</p><span>' + esc(pick(s, LANG(), "d")) + '</span>' +
+        (v.originalUrl ? '<a class="vc-source" target="_blank" rel="noopener" href="' + esc(v.originalUrl) + '">' + esc(sourceLabel(v.originalUrl)) + ' ↗</a>' : "") +
+        '</div></article>';
     }).join("");
     initReveal();
-    $$("[data-story]", grid).forEach(function (card) {
-      card.addEventListener("click", function () {
-        var id = card.getAttribute("data-story");
-        var idx = videoState.list.findIndex ? videoState.list.findIndex(function (x) { return x.id === id; }) : -1;
-        var globalIdx = LH_DATA.videos.findIndex(function (x) { return x.id === id; });
-        if (idx >= 0) { openVideoModal(idx); return; }
-        /* not on this page's rendered list — render a one-off modal list */
-        videoState.list = LH_DATA.videos;
-        openVideoModal(globalIdx);
-        videoState.list = currentVideos();
-      });
-    });
+    observeEmbeds();
   }
 
   /* ---------------- programs ---------------- */
@@ -505,11 +451,11 @@
     });
   }
 
-  /* Broken-image fallback: swap failed CDN thumbs for the branded placeholder. */
+  /* ---------------- broken-image fallback ---------------- */
   function initImageFallback() {
     var PH = '<svg viewBox="0 0 64 64" class="img-ph-svg" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="rgba(255,255,255,.14)"/><ellipse cx="32" cy="16.5" rx="9" ry="3" fill="none" stroke="#FFC533" stroke-width="2.6"/><path d="M45 44H20a8 8 0 0 1-1.6-15.84A12 12 0 0 1 41.6 24 9 9 0 0 1 45 44Z" fill="rgba(255,255,255,.85)"/></svg>';
     function toPlaceholder(img) {
-      var host = img.closest(".vc-thumb, .sc-thumb, .gallery-item, .pc-media, .split-media, .hero-photo-frame");
+      var host = img.closest(".vc-thumb, .sc-thumb, .gallery-item, .pc-media, .split-media, .hero-photo-frame, .nc-media, .activity-card");
       if (!host || host.dataset.phApplied) return;
       host.dataset.phApplied = "1";
       img.style.display = "none";
@@ -522,9 +468,8 @@
       var t = e.target;
       if (t && t.tagName === "IMG") toPlaceholder(t);
     }, true);
-    /* also scan once at boot (cached failures may not re-fire) */
     window.setTimeout(function () {
-      28394("img").forEach(function (img) {
+      $$("img").forEach(function (img) {
         if (img.complete && img.naturalWidth === 0) toPlaceholder(img);
       });
     }, 2500);
@@ -537,7 +482,7 @@
     initVideoFilters(); renderVideos();
     renderStories();
     renderPrograms(); renderNews(); renderNewsDetails(); fillMedia();
-    initForms();
+    initForms(); initImageFallback();
     document.addEventListener("lh:langchange", function () {
       renderGallery(); renderVideos(); renderStories(); renderPrograms(); renderNews();
       initGalleryFilters(); initVideoFilters(); applyCatLabels(); initReveal(); fillMedia();
