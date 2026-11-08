@@ -116,7 +116,14 @@
     }
   }
 
+  /* Set to a real Iframely api_key to make Iframely the first renderer again.
+     Keyless (null): platform embeds render instantly, no 6s wait per card. */
+  var API_KEY = null;
+
+  function iframelyFirst() { return !!API_KEY; }
+
   window.LH_IFRAMELY = {
+    iframelyFirst: iframelyFirst,
     isAllowed: isAllowed,
     platformOf: platformOf,
     generatorUrl: generatorUrl,

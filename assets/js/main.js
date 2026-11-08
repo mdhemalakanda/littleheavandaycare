@@ -210,14 +210,23 @@
     host.dataset.mounted = "1";
     var url = host.getAttribute("data-embed-url");
     var title = host.getAttribute("data-embed-title") || "Video";
-    window.LH_IFRAMELY.render(host, url, title, function (ok) {
-      if (ok) return;
-      /* Iframely keyless cannot resolve FB/IG — use the platform's own official embed. */
+    if (window.LH_IFRAMELY.iframelyFirst()) {
+      /* Key configured: Iframely first, platform embed on failure. */
+      window.LH_IFRAMELY.render(host, url, title, function (ok) {
+        if (ok) return;
+        var plat = window.LH_IFRAMELY.platformEmbedHtml(url);
+        host.innerHTML = plat
+          ? '<div class="iframely-responsive">' + plat + '</div>'
+          : fallbackHtml(url);
+      });
+    } else {
+      /* Keyless: platform embed renders INSTANTLY. Iframely keyless cannot
+         resolve FB/IG (verified 404), so waiting 6s per card helps nobody. */
       var plat = window.LH_IFRAMELY.platformEmbedHtml(url);
       host.innerHTML = plat
-        ? '<div class="iframely-responsive">' + plat + '</div>'
-        : fallbackHtml(url);
-    });
+          ? '<div class="iframely-responsive embed-platform">' + plat + '</div>'
+          : fallbackHtml(url);
+    }
   }
 
   function observeEmbeds() {
