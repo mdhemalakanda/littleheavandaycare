@@ -44,6 +44,8 @@ docs/                  project documentation + research sources (this is NOT the
 - Videos/Reels render as lazy inline **Iframely embed.js** embeds
   (`https://iframely.net/embed.js`, `data-iframely-url` = original post URL, `iframely.load()`
   near the viewport, timeout → honest fallback card with the original post link).
+  Iframely's free keyless service cannot resolve FB/IG (verified 404), so each card falls back to
+  the platform's own official embed (FB plugin iframe / IG /embed iframe) — keyless and reliable.
   Generator preview URLs (`https://iframely.com/domains/{facebook|instagram}?url=…`)
   are derived dynamically for every item and shown in each video modal for QA.
 - Nothing is downloaded; nothing is re-hosted; every card links back to the original post.

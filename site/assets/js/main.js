@@ -211,7 +211,12 @@
     var url = host.getAttribute("data-embed-url");
     var title = host.getAttribute("data-embed-title") || "Video";
     window.LH_IFRAMELY.render(host, url, title, function (ok) {
-      if (!ok) { host.innerHTML = fallbackHtml(url); }
+      if (ok) return;
+      /* Iframely keyless cannot resolve FB/IG — use the platform's own official embed. */
+      var plat = window.LH_IFRAMELY.platformEmbedHtml(url);
+      host.innerHTML = plat
+        ? '<div class="iframely-responsive">' + plat + '</div>'
+        : fallbackHtml(url);
     });
   }
 

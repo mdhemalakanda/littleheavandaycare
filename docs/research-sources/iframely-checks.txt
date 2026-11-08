@@ -5,3 +5,16 @@
 - Public https://iframely.com/oembed?url=... WITHOUT api_key → returns dashboard HTML page, NOT JSON. Confirms no-key embed.js is the correct public integration path.
 - NOTE: user-supplied sample reel https://www.instagram.com/reel/DfKgrF3INIe/ belongs to @thom.halalbiz (a marketing account), NOT Little Heaven. Verified 2026-11-08 via post page og:title. The sample FB reel ID 1104273765763702 was not verifiable as a Little Heaven post; treated as generator-pattern examples only.
 - Facebook video pages expose graph.facebook.com/v27.0/oembed_video alternate link (requires app token — not usable without key).
+
+# VERIFIED LIMITATION (2026-11-08, later same day)
+Iframely's FREE keyless embed.js cannot resolve facebook.com / instagram.com media:
+- https://cdn.iframe.ly/api/iframely?url=<fb reel>  → 404 (no api_key / invalid subdomain)
+- embed.js loads (HTTP 200) but has no keyless backend for FB/IG → cards would stay empty.
+Resolution implemented: fallback chain in assets/js/iframely.js + main.js
+  1. Iframely embed.js attempt (per spec, data-iframely-url = original URL, 6s timeout)
+  2. OFFICIAL platform embed: facebook.com/plugins/video.php (reels/videos) or
+     plugins/post.php (posts) · instagram.com/{p|reel}/{id}/embed  — both verified HTTP 200
+     for our exact posts, keyless, platform-approved
+  3. Source-link fallback card (pending-permalink items only)
+If a paid Iframely api_key is ever provided (requires owner approval per project rules),
+step 1 will succeed first and step 2 simply never triggers.

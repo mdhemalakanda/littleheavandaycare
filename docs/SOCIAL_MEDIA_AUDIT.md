@@ -93,7 +93,11 @@ One story-highlight folder exists (id 18081747892597097) but its contents requir
   Consequence: every <img> on the site has an automatic onerror fallback that swaps any failed thumb for
   the branded cloud placeholder — the site never shows a broken image, and the real video (with its own
   poster) still loads inside the Iframely embed. Regeneration: docs/research-sources/.
-- Iframely: embed.js HTTP 200 · generator URLs return 200 for both platforms (tested with real permalinks).
+- Iframely: embed.js HTTP 200 · generator URLs return 200 · BUT the free keyless service CANNOT
+  resolve FB/IG media (cdn.iframe.ly API → 404 without api_key, verified). Cards therefore render
+  via the platforms' own official embeds (FB plugins video.php/post.php, IG /embed — both verified
+  HTTP 200 for our exact posts) after the Iframely attempt times out. Pure-Iframely rendering will
+  activate automatically if a paid api_key is ever supplied (owner approval required).
 - Canonical post URLs: all og-verified 2026-11-08.
 
 ## Limitations & honesty notes

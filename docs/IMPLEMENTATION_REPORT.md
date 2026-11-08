@@ -15,7 +15,7 @@ New logo (cloud + halo mark, inline SVG + favicon), new bilingual dictionary (33
 new JSON-LD ChildCare structured data with verified facts, new contact/social graph
 (FB + IG + WhatsApp wa.me/8801947771948).
 
-**Iframely integration (as specified):**
+**Iframely integration (as specified) — with verified keyless limitation and official platform fallback:**
 - `assets/js/iframely.js`: URL whitelist (facebook.com /reel /videos /watch /posts, instagram.com /p /reel /reels),
   dynamic generator URLs `https://iframely.com/domains/{facebook|instagram}?url=encodeURIComponent(original)`,
   `embedHtml()` producing the official iframely-embed / iframely-responsive / a[data-iframely-url] structure,
