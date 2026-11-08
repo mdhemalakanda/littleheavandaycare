@@ -936,3 +936,15 @@ html[lang="bn"] .eyebrow { letter-spacing: .02em; }
 /* Reel (portrait) vs video (landscape) embed ratios — no more cropping */
 .vc-embed.ratio-portrait .iframely-responsive { padding-bottom: 178%; }
 .vc-embed.ratio-landscape .iframely-responsive { padding-bottom: 56.25%; }
+
+/* Masonry video grid (mixed portrait/landscape cards pack without gaps) */
+.masonry { columns: 3; column-gap: 28px; }
+.masonry > * {
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  margin-bottom: 28px;
+  width: 100%;
+}
+.masonry > .reveal { opacity: 1; transform: none; }
+@media (max-width: 991px) { .masonry { columns: 2; } }
+@media (max-width: 640px) { .masonry { columns: 1; } }
