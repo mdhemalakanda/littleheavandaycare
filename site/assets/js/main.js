@@ -1,15 +1,17 @@
 /* ============================================================
-   KIDS EXPRESS SCHOOL — interactions & dynamic content
+   LITTLE HEAVEN — interactions & dynamic content
    Classic script (no modules) so the site works from file:// too.
-   Depends on: i18n.js (KES_I18N), translations.js (KES_T),
-               data files (KES_DATA.gallery/videos/programs/...).
+   Depends on: i18n.js (LH_I18N), translations.js (LH_T),
+               iframely.js (LH_IFRAMELY), data files (LH_DATA, LH_MEDIA).
+   Videos/Reels render via Iframely embed.js — click to load,
+   with an honest fallback card when an embed is unavailable.
    ============================================================ */
 (function () {
   "use strict";
 
   var $  = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
-  var LANG = function () { return window.KES_I18N.lang; };
+  var LANG = function () { return window.LH_I18N.lang; };
   var pick = function (obj, field) { return obj && obj[field] ? obj[field][LANG()] || obj[field].en : ""; };
   var esc = function (s) {
     return String(s == null ? "" : s)
@@ -17,7 +19,7 @@
       .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   };
 
-  /* ---------------- header: sticky shadow ---------------- */
+  /* ---------------- header / drawer / nav ---------------- */
   function initHeader() {
     var header = $(".site-header");
     if (!header) return;
@@ -30,7 +32,6 @@
     onScroll();
   }
 
-  /* ---------------- mobile drawer ---------------- */
   function initDrawer() {
     var open = $(".hamburger"), close = $(".drawer-close"), overlay = $(".drawer-overlay");
     if (!open) return;
@@ -38,11 +39,10 @@
     if (close) close.addEventListener("click", closeDrawer);
     if (overlay) overlay.addEventListener("click", closeDrawer);
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDrawer(); });
-    function closeDrawer() { document.body.classList.remove("drawer-open"); if (open) open.setAttribute("aria-expanded", "false"); }
     $$(".drawer nav a").forEach(function (a) { a.addEventListener("click", closeDrawer); });
+    function closeDrawer() { document.body.classList.remove("drawer-open"); if (open) open.setAttribute("aria-expanded", "false"); }
   }
 
-  /* ---------------- dropdowns on touch ---------------- */
   function initDropdowns() {
     if (!window.matchMedia("(hover: none)").matches) return;
     $$(".main-nav > li.has-drop > .nav-link").forEach(function (link) {
@@ -60,7 +60,6 @@
     });
   }
 
-  /* ---------------- reveal on scroll ---------------- */
   function initReveal() {
     var els = $$(".reveal");
     if (!els.length) return;
@@ -73,45 +72,23 @@
     els.forEach(function (e) { io.observe(e); });
   }
 
-  /* ---------------- back to top ---------------- */
   function initBackTop() {
     var bt = $(".back-top");
     if (!bt) return;
     bt.addEventListener("click", function () { window.scrollTo({ top: 0, behavior: "smooth" }); });
   }
 
-  /* ---------------- stats count-up ---------------- */
-  function initStats() {
-    var nums = $$("[data-count]");
-    if (!nums.length) return;
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        if (!en.isIntersecting) return;
-        var el = en.target, target = parseInt(el.getAttribute("data-count"), 10) || 0;
-        var suffix = el.getAttribute("data-count-suffix") || "";
-        var t0 = null, dur = 1600;
-        function step(ts) {
-          if (!t0) t0 = ts;
-          var p = Math.min((ts - t0) / dur, 1);
-          var eased = 1 - Math.pow(1 - p, 3);
-          el.textContent = Math.round(target * eased) + suffix;
-          if (p < 1) requestAnimationFrame(step);
-        }
-        requestAnimationFrame(step);
-        io.unobserve(el);
-      });
-    }, { threshold: 0.4 });
-    nums.forEach(function (n) { io.observe(n); });
-  }
+  /* ---------------- gallery + lightbox ---------------- */
+  var galleryState = { filter: "all", lightboxList: [], lbIndex: 0 };
 
-  /* ---------------- gallery ---------------- */
-  var galleryState = { items: [], filter: "all", lightboxList: [], lbIndex: 0 };
+  var FB_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.5 21v-8h2.7l.4-3.2h-3.1V7.7c0-.9.3-1.6 1.7-1.6h1.5V3.2c-.3 0-1.2-.1-2.3-.1-2.4 0-4 1.4-4 4v2.7H7.6V13h2.8v8h3.1Z"/></svg>';
+  var IG_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.2" fill="currentColor" stroke="none"/></svg>';
 
   function renderGallery() {
     var grid = $("[data-gallery-grid]");
-    if (!grid || !window.KES_DATA || !KES_DATA.gallery) return;
+    if (!grid || !window.LH_DATA || !LH_DATA.gallery) return;
     var lim = parseInt(grid.getAttribute("data-limit") || "0", 10);
-    var data = KES_DATA.gallery.filter(function (g) {
+    var data = LH_DATA.gallery.filter(function (g) {
       return galleryState.filter === "all" || g.cat === galleryState.filter;
     });
     if (lim > 0) data = data.slice(0, lim);
@@ -134,7 +111,7 @@
 
   function applyCatLabels() {
     $$("[data-cat]").forEach(function (el) {
-      el.textContent = window.KES_I18N.t("gallery.cat." + el.getAttribute("data-cat"));
+      el.textContent = window.LH_I18N.t("gallery.cat." + el.getAttribute("data-cat"));
     });
   }
 
@@ -148,15 +125,11 @@
         galleryState.filter = chip.getAttribute("data-filter") || "all";
         renderGallery();
       });
-    });
-    // localize chip labels
-    $$("button.chip", wrap).forEach(function (chip) {
       var f = chip.getAttribute("data-filter");
-      chip.textContent = window.KES_I18N.t("gallery.chip." + (f || "all"));
+      chip.textContent = window.LH_I18N.t("gallery.chip." + (f || "all"));
     });
   }
 
-  /* lightbox */
   function ensureLightbox() {
     if ($(".lightbox")) return $(".lightbox");
     var lb = document.createElement("div");
@@ -165,7 +138,7 @@
       '<button class="lb-close" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg></button>' +
       '<span class="lb-count"></span>' +
       '<button class="lb-btn lb-prev" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg></button>' +
-      '<div class="lb-body"><img src="" alt=""><div class="lb-caption"><b></b><span></span></div></div>' +
+      '<div class="lb-body"><img src="" alt=""><div class="lb-caption"><b></b><span></span><a class="lb-source" target="_blank" rel="noopener" href="#">Open source post ↗</a></div></div>' +
       '<button class="lb-btn lb-next" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg></button>';
     document.body.appendChild(lb);
     $(".lb-close", lb).addEventListener("click", closeLightbox);
@@ -204,35 +177,71 @@
     $("img", lb).src = g.src;
     $("img", lb).alt = pick(g, LANG());
     $(".lb-caption b", lb).textContent = pick(g, LANG());
-    $(".lb-caption span", lb).textContent = window.KES_I18N.t("gallery.cat." + g.cat);
+    $(".lb-caption span", lb).textContent = window.LH_I18N.t("gallery.cat." + g.cat);
+    var src = $(".lb-source", lb);
+    if (g.srcUrl) { src.href = g.srcUrl; src.style.display = "inline-flex"; }
+    else { src.style.display = "none"; }
     $(".lb-count", lb).textContent = (galleryState.lbIndex + 1) + " / " + galleryState.lightboxList.length;
   }
 
-  /* ---------------- videos ---------------- */
-  var FB_EMBED = function (u) { return "https://www.facebook.com/plugins/video.php?href=" + encodeURIComponent(u) + "&show_text=false&width=560"; };
+  /* ---------------- videos via Iframely ---------------- */
+  var videoState = { platform: "all", list: [] };
 
-  function renderVideos() {
-    var grid = $("[data-videos-grid]");
-    if (!grid || !window.KES_DATA || !KES_DATA.videos) return;
-    var lim = parseInt(grid.getAttribute("data-limit") || "0", 10);
-    var list = KES_DATA.videos.slice(0, lim > 0 ? lim : KES_DATA.videos.length);
-    grid.innerHTML = list.map(function (v, i) {
-      return '<article class="video-card reveal" style="transition-delay:' + (i * 0.06) + 's">' +
-        '<div class="vc-thumb"><img src="' + esc(v.thumb) + '" alt="' + esc(pick(v, LANG())) + '" loading="lazy" referrerpolicy="no-referrer">' +
-        '<button class="vc-play-btn" data-video="' + i + '" aria-label="' + esc(window.KES_I18N.t("videos.play")) + '"><span class="vc-play"></span></button>' +
-        (v.dur ? '<span class="vc-duration">' + esc(v.dur) + '</span>' : "") + '</div>' +
-        '<div class="vc-body"><h3>' + esc(pick(v, LANG())) + '</h3><p>' + esc(pickDeep(v, LANG(), "d")) + '</p>' +
-        '</div></article>';
-    }).join("");
-    initReveal();
-    $$("[data-video]", grid).forEach(function (btn) {
-      btn.addEventListener("click", function () { openVideoModal(parseInt(btn.getAttribute("data-video"), 10)); });
+  function currentVideos() {
+    return LH_DATA.videos.filter(function (v) {
+      return videoState.platform === "all" || v.platform === videoState.platform;
     });
   }
 
-  /* helper: pick deep field (en.t / bn.d) */
-  function pickDeep(obj, lang, field) {
-    return obj && obj[lang] && obj[lang][field] ? obj[lang][field] : "";
+  function thumbHtml(v, cls) {
+    if (v.thumb) {
+      return '<img src="' + esc(v.thumb) + '" alt="" loading="lazy" referrerpolicy="no-referrer">';
+    }
+    return '<span class="vc-placeholder ' + (cls || '') + '" aria-hidden="true">' +
+      '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="rgba(255,255,255,.14)"/><ellipse cx="32" cy="16.5" rx="9" ry="3" fill="none" stroke="#FFC533" stroke-width="2.6"/><path d="M45 44H20a8 8 0 0 1-1.6-15.84A12 12 0 0 1 41.6 24 9 9 0 0 1 45 44Z" fill="rgba(255,255,255,.85)"/></svg>' +
+      '</span>';
+  }
+
+  function renderVideos() {
+    var grid = $("[data-videos-grid]");
+    if (!grid || !window.LH_DATA || !LH_DATA.videos) return;
+    var lim = parseInt(grid.getAttribute("data-limit") || "0", 10);
+    var list = currentVideos().slice(0, lim > 0 ? lim : currentVideos().length);
+    videoState.list = list;
+    grid.innerHTML = list.map(function (v, i) {
+      var badge = v.platform === "instagram" ? '<span class="vc-platform p-ig">' + IG_ICON + 'Instagram</span>' : '<span class="vc-platform p-fb">' + FB_ICON + 'Facebook</span>';
+      var pending = v.status === "pending-permalink";
+      var catLabel = window.LH_I18N.t("videos.cat." + (v.cat || "learning"));
+      return '<article class="video-card reveal" data-vi="' + i + '" style="transition-delay:' + (i * 0.06) + 's">' +
+        '<div class="vc-thumb' + (v.thumb ? '' : ' no-thumb') + '">' + thumbHtml(v) +
+        '<button class="vc-play-btn" aria-label="' + esc(window.LH_I18N.t("videos.play")) + '"><span class="vc-play"></span></button>' +
+        badge +
+        (v.dur ? '<span class="vc-duration">' + esc(v.dur) + '</span>' : "") +
+        '</div>' +
+        '<div class="vc-body"><span class="vc-cat">' + esc(catLabel) + '</span>' +
+        '<h3>' + esc(pick(v, LANG())) + '</h3><p>' + esc(pick(v, LANG(), "d")) + '</p>' +
+        (pending ? '<a class="vc-source" target="_blank" rel="noopener" href="' + esc(v.pageUrl || "https://www.facebook.com/littleheavendaycarepreschool/videos") + '">' + esc(window.LH_I18N.t("videos.pendingNote")) + ' ↗</a>' : '') +
+        '</div></article>';
+    }).join("");
+    initReveal();
+    $$("article.video-card", grid).forEach(function (card) {
+      card.addEventListener("click", function () { openVideoModal(parseInt(card.getAttribute("data-vi"), 10)); });
+    });
+  }
+
+  function initVideoFilters() {
+    var wrap = $(".video-chips");
+    if (!wrap) return;
+    $$("button.chip", wrap).forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        $$("button.chip", wrap).forEach(function (c) { c.classList.remove("on"); });
+        chip.classList.add("on");
+        videoState.platform = chip.getAttribute("data-platform") || "all";
+        renderVideos();
+      });
+      var p = chip.getAttribute("data-platform");
+      chip.textContent = window.LH_I18N.t("videos." + (p || "all"));
+    });
   }
 
   function ensureVideoModal() {
@@ -241,36 +250,82 @@
     vm.className = "video-modal";
     vm.innerHTML =
       '<div class="vm-body">' +
+      '  <button class="vm-x" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="20" height="20"><path d="M18 6L6 18M6 6l12 12"/></svg></button>' +
       '  <div class="vm-frame"></div>' +
+      '  <div class="vm-fallback" hidden>' +
+      '    <div class="vm-fb-icon"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#3FA9D9" opacity=".15"/><ellipse cx="32" cy="16.5" rx="9" ry="3" fill="none" stroke="#FFC533" stroke-width="2.6"/><path d="M45 44H20a8 8 0 0 1-1.6-15.84A12 12 0 0 1 41.6 24 9 9 0 0 1 45 44Z" fill="#FFF9F1" stroke="#3FA9D9"/></svg></div>' +
+      '    <p class="vm-fb-note"></p>' +
+      '    <div class="vm-fb-actions"></div>' +
+      '  </div>' +
       '  <div class="vm-info"><h3></h3><p></p>' +
       '    <div class="vm-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span data-i18n="videos.embedNote"></span></div>' +
-      '    <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap">' +
-      '      <a class="btn btn-primary btn-sm vm-fb" target="_blank" rel="noopener" href="#"><span data-i18n="videos.watchOnFb"></span></a>' +
+      '    <div class="vm-actions">' +
+      '      <a class="btn btn-primary btn-sm vm-source" target="_blank" rel="noopener" href="#"></a>' +
       '      <button class="btn btn-ghost btn-sm vm-close-btn"><span data-i18n="common.close"></span></button>' +
+      '      <a class="vm-generator" target="_blank" rel="noopener" href="#" data-i18n="videos.generator"></a>' +
       '    </div>' +
       '  </div>' +
       '</div>';
     document.body.appendChild(vm);
     vm.addEventListener("click", function (e) { if (e.target === vm) closeVideoModal(); });
     $(".vm-close-btn", vm).addEventListener("click", closeVideoModal);
+    $(".vm-x", vm).addEventListener("click", closeVideoModal);
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && vm.classList.contains("open")) closeVideoModal();
     });
     return vm;
   }
 
+  function showFallback(vm, note, links) {
+    var fb = $(".vm-fallback", vm);
+    fb.hidden = false;
+    $(".vm-fb-note", fb).textContent = note;
+    $(".vm-fb-actions", fb).innerHTML = links.map(function (l) {
+      return '<a class="btn btn-sky btn-sm" target="_blank" rel="noopener" href="' + esc(l.href) + '">' + esc(l.label) + '</a>';
+    }).join("");
+  }
+
   function openVideoModal(i) {
-    var v = window.KES_DATA.videos[i];
+    var v = videoState.list[i];
     if (!v) return;
     var vm = ensureVideoModal();
-    $(".vm-frame", vm).innerHTML =
-      '<iframe src="' + esc(FB_EMBED(v.fbUrl)) + '" class="vm-iframe" ' +
-      'allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen title="' + esc(pick(v, LANG())) + '"></iframe>';
-    $(".vm-info h3", vm).textContent = pick(v, LANG());
-    $(".vm-info p", vm).textContent = pickDeep(v, LANG(), "d");
-    $(".vm-fb", vm).href = v.fbUrl;
-    // localize the two data-i18n labels just injected
-    $$("[data-i18n]", vm).forEach(function (el) { el.textContent = window.KES_I18N.t(el.getAttribute("data-i18n")); });
+    var fb = $(".vm-fallback", vm); fb.hidden = true;
+    $(".vm-frame", vm).innerHTML = "";
+    var source = $(".vm-source", vm);
+    var gen = $(".vm-generator", vm);
+    var title = pick(v, LANG());
+
+    if (v.status === "pending-permalink" || !v.originalUrl) {
+      showFallback(vm, window.LH_I18N.t("videos.pendingNote"),
+        [{ href: v.pageUrl || "https://www.facebook.com/littleheavendaycarepreschool/videos", label: window.LH_I18N.t("videos.watchOnFb") }]);
+    } else {
+      var platform = window.LH_IFRAMELY.platformOf(v.originalUrl) || v.platform;
+      var gurl = window.LH_IFRAMELY.generatorUrl(platform, v.originalUrl);
+      if (gurl) { gen.href = gurl; gen.style.display = "inline-flex"; } else { gen.style.display = "none"; }
+      var canEmbed = window.LH_IFRAMELY.isAllowed(v.originalUrl);
+      if (!canEmbed) {
+        showFallback(vm, window.LH_I18N.t("videos.fallbackNote"),
+          [{ href: v.originalUrl, label: platform === "instagram" ? window.LH_I18N.t("videos.watchOnIg") : window.LH_I18N.t("videos.watchOnFb") }]);
+      } else {
+        $(".vm-frame", vm).innerHTML = window.LH_IFRAMELY.embedHtml(v.originalUrl, title);
+        window.LH_IFRAMELY.render($(".vm-frame", vm), v.originalUrl, title, function (ok) {
+          if (!ok) {
+            $(".vm-frame", vm).innerHTML = "";
+            showFallback(vm, window.LH_I18N.t("videos.fallbackNote"),
+              [{ href: v.originalUrl, label: platform === "instagram" ? window.LH_I18N.t("videos.watchOnIg") : window.LH_I18N.t("videos.watchOnFb") }]);
+          }
+        });
+      }
+      source.href = v.originalUrl;
+      source.innerHTML = platform === "instagram"
+        ? '<span data-i18n="videos.watchOnIg"></span>'
+        : '<span data-i18n="videos.watchOnFb"></span>';
+      localizeInjected(vm);
+    }
+
+    $(".vm-info h3", vm).textContent = title;
+    $(".vm-info p", vm).textContent = pick(v, LANG(), "d");
+    localizeInjected(vm);
     vm.classList.add("open");
     document.body.style.overflow = "hidden";
   }
@@ -283,62 +338,55 @@
     document.body.style.overflow = "";
   }
 
-  /* ---------------- testimonials carousel ---------------- */
-  function initTestimonials() {
-    var wrap = $(".testi-wrap");
-    if (!wrap || !window.KES_DATA || !KES_DATA.testimonials) return;
-    var track = $(".testi-track", wrap), dots = $(".testi-dots", wrap);
-    function render() {
-      track.innerHTML = KES_DATA.testimonials.map(function (t) {
-        return '<div class="testi-slide"><div class="testi-card">' +
-          '<span class="quote-mark" aria-hidden="true">&ldquo;</span>' +
-          '<div class="testi-stars" aria-hidden="true">★★★★★</div>' +
-          '<p>' + esc(t[LANG()].quote) + '</p>' +
-          '<div class="testi-who"><span class="tw-avatar ' + t.av + '">' + esc(t.initial) + '</span>' +
-          '<span style="text-align:left"><b>' + esc(t[LANG()].name) + '</b><span>' + esc(t[LANG()].role) + '</span></span></div>' +
-          '</div></div>';
-      }).join("");
-      dots.innerHTML = KES_DATA.testimonials.map(function (_, i) {
-        return '<button data-dot="' + i + '" aria-label="' + (i + 1) + '"></button>';
-      }).join("");
-      wire();
-      go(cur);
-    }
-    var cur = 0, timer = null;
-    function go(i) {
-      cur = i;
-      track.style.transform = "translateX(-" + (i * 100) + "%)";
-      $$("button", dots).forEach(function (b, bi) { b.classList.toggle("on", bi === i); });
-    }
-    function wire() {
-      $$("button", dots).forEach(function (b) {
-        b.addEventListener("click", function () { go(parseInt(b.getAttribute("data-dot"), 10)); restart(); });
+  /* ---------------- stories (real reels) ---------------- */
+  function renderStories() {
+    var grid = $("[data-stories-grid]");
+    if (!grid || !window.LH_DATA || !LH_DATA.stories) return;
+    var lim = parseInt(grid.getAttribute("data-limit") || "0", 10);
+    var kind = grid.getAttribute("data-kind");
+    var pool = kind ? LH_DATA.stories.filter(function (s) { return s.kind === kind; }) : LH_DATA.stories;
+    var list = pool.slice(0, lim > 0 ? lim : pool.length);
+    grid.innerHTML = list.map(function (s, i) {
+      var v = LH_DATA.videos.find(function (x) { return x.id === s.videoId; });
+      if (!v) return "";
+      var badge = v.platform === "instagram" ? '<span class="sc-platform p-ig">' + IG_ICON + '</span>' : '<span class="sc-platform p-fb">' + FB_ICON + '</span>';
+      var kindLabel = s.kind === "teacher" ? "teacher" : "parent";
+      return '<article class="story-card reveal" data-story="' + esc(s.videoId) + '" style="transition-delay:' + (i * 0.06) + 's">' +
+        '<div class="sc-thumb">' + thumbHtml(v, "sc-ph") + badge +
+        '<button class="vc-play-btn" aria-label="' + esc(window.LH_I18N.t("videos.play")) + '"><span class="vc-play"></span></button></div>' +
+        '<div class="sc-body"><p>' + esc(pick(s, LANG())) + '</p><span>' + esc(pick(s, LANG(), "d")) + '</span>' +
+        '<span class="sc-kind k-' + kindLabel + '">' + esc(kindLabel === "teacher" ? (LANG() === "bn" ? "শিক্ষিকা" : "Teacher") : (LANG() === "bn" ? "অভিভাবক" : "Parent")) + '</span></div>' +
+        '</article>';
+    }).join("");
+    initReveal();
+    $$("[data-story]", grid).forEach(function (card) {
+      card.addEventListener("click", function () {
+        var id = card.getAttribute("data-story");
+        var idx = videoState.list.findIndex ? videoState.list.findIndex(function (x) { return x.id === id; }) : -1;
+        var globalIdx = LH_DATA.videos.findIndex(function (x) { return x.id === id; });
+        if (idx >= 0) { openVideoModal(idx); return; }
+        /* not on this page's rendered list — render a one-off modal list */
+        videoState.list = LH_DATA.videos;
+        openVideoModal(globalIdx);
+        videoState.list = currentVideos();
       });
-      var prev = $(".testi-prev", wrap), next = $(".testi-next", wrap);
-      if (prev) prev.addEventListener("click", function () { go((cur - 1 + KES_DATA.testimonials.length) % KES_DATA.testimonials.length); restart(); });
-      if (next) next.addEventListener("click", function () { go((cur + 1) % KES_DATA.testimonials.length); restart(); });
-    }
-    function restart() { clearInterval(timer); timer = setInterval(function () { go((cur + 1) % KES_DATA.testimonials.length); }, 6000); }
-    render();
-    restart();
-    wrap.addEventListener("mouseenter", function () { clearInterval(timer); });
-    wrap.addEventListener("mouseleave", restart);
-    document.addEventListener("kes:langchange", render);
+    });
   }
 
-  /* ---------------- programs grid (programs.html) ---------------- */
+  /* ---------------- programs ---------------- */
   function renderPrograms() {
     var grid = $("[data-programs-grid]");
-    if (!grid || !window.KES_DATA || !KES_DATA.programs) return;
+    if (!grid || !window.LH_DATA || !LH_DATA.programs) return;
     var lim = parseInt(grid.getAttribute("data-limit") || "0", 10);
-    var list = KES_DATA.programs.slice(0, lim > 0 ? lim : KES_DATA.programs.length);
+    var list = LH_DATA.programs.slice(0, lim > 0 ? lim : LH_DATA.programs.length);
     grid.innerHTML = list.map(function (p, i) {
+      var imgSrc = (window.LH_MEDIA && LH_MEDIA[p.img] && LH_MEDIA[p.img].src) || "";
       return '<article class="program-card card tint-' + p.tint + ' reveal" style="transition-delay:' + (i * 0.06) + 's">' +
-        '<div class="pc-media"><img src="' + esc(p.img) + '" alt="' + esc(pick(p, LANG())) + '" loading="lazy" referrerpolicy="no-referrer">' +
-        '<span class="pc-age">' + esc(p[LANG()].age) + '</span></div>' +
+        '<div class="pc-media"><img src="' + esc(imgSrc) + '" alt="' + esc(pick(p, LANG())) + '" loading="lazy" referrerpolicy="no-referrer">' +
+        '<span class="pc-age">' + esc(pick(p, LANG(), "age")) + '</span></div>' +
         '<div class="pc-body"><h3>' + esc(pick(p, LANG())) + '</h3>' +
-        '<p>' + esc(pick(p, LANG(), "short") || p[LANG()].short) + '</p>' +
-        '<a class="pc-link" href="' + p.href + '"><span data-i18n="common.learnMore"></span>' +
+        '<p>' + esc(pick(p, LANG(), "short")) + '</p>' +
+        '<a class="pc-link" href="' + esc(p.href) + '"><span data-i18n="common.learnMore"></span>' +
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>' +
         '</article>';
     }).join("");
@@ -347,40 +395,25 @@
   }
 
   function localizeInjected(scope) {
-    $$("[data-i18n]", scope).forEach(function (el) { el.textContent = window.KES_I18N.t(el.getAttribute("data-i18n")); });
+    $$("[data-i18n]", scope).forEach(function (el) { el.textContent = window.LH_I18N.t(el.getAttribute("data-i18n")); });
   }
 
-  /* ---------------- teachers grid ---------------- */
-  function renderTeachers() {
-    var grid = $("[data-teachers-grid]");
-    if (!grid || !window.KES_DATA || !KES_DATA.teachers) return;
-    grid.innerHTML = KES_DATA.teachers.map(function (t, i) {
-      return '<article class="teacher-card reveal" style="transition-delay:' + (i * 0.05) + 's">' +
-        '<div class="teacher-avatar ' + t.av + '">' + esc(t.initial) + '</div>' +
-        '<h3>' + esc(t[LANG()].name) + '</h3>' +
-        '<div class="t-role">' + esc(t[LANG()].role) + '</div>' +
-        '<p>' + esc(t[LANG()].bio) + '</p>' +
-        '</article>';
-    }).join("");
-    initReveal();
-  }
-
-  /* ---------------- news list + details ---------------- */
+  /* ---------------- news ---------------- */
   function renderNews() {
     var grid = $("[data-news-grid]");
-    if (!grid || !window.KES_DATA || !KES_DATA.news) return;
+    if (!grid || !window.LH_DATA || !LH_DATA.news) return;
     var lim = parseInt(grid.getAttribute("data-limit") || "0", 10);
-    var list = KES_DATA.news.slice(0, lim > 0 ? lim : KES_DATA.news.length);
+    var list = LH_DATA.news.slice(0, lim > 0 ? lim : LH_DATA.news.length);
     grid.innerHTML = list.map(function (n, i) {
       var d = n.date ? new Date(n.date) : null;
-      var months = window.KES_I18N.t("meta.months").split(",");
+      var months = window.LH_I18N.t("meta.months").split(",");
       var m = d ? (months[d.getMonth()] || "") : "";
       var dateBadge = d ? '<span class="nc-date"><b>' + d.getDate() + '</b><span>' + esc(m) + '</span></span>' : "";
       return '<article class="news-card card reveal" style="transition-delay:' + (i * 0.06) + 's">' +
         '<div class="nc-media"><img src="' + esc(n.thumb) + '" alt="' + esc(pick(n, LANG())) + '" loading="lazy" referrerpolicy="no-referrer">' +
         dateBadge + '</div>' +
-        '<div class="nc-body"><span class="nc-tag">' + esc(window.KES_I18N.t("news.cat." + n.cat)) + '</span>' +
-        '<h3>' + esc(pick(n, LANG())) + '</h3><p>' + esc(pickDeep(n, LANG(), "excerpt")) + '</p>' +
+        '<div class="nc-body"><span class="nc-tag">' + esc(window.LH_I18N.t("news.cat." + n.cat)) + '</span>' +
+        '<h3>' + esc(pick(n, LANG())) + '</h3><p>' + esc(pick(n, LANG(), "excerpt")) + '</p>' +
         '<a class="pc-link" href="news-details.html?id=' + esc(n.id) + '"><span data-i18n="common.readMore"></span>' +
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div>' +
         '</article>';
@@ -391,26 +424,26 @@
 
   function renderNewsDetails() {
     var host = $("#newsArticle");
-    if (!host || !window.KES_DATA || !KES_DATA.news) return;
+    if (!host || !window.LH_DATA || !LH_DATA.news) return;
     var id = new URLSearchParams(location.search).get("id");
-    var n = KES_DATA.news.find(function (x) { return x.id === id; }) || KES_DATA.news[0];
+    var n = LH_DATA.news.find(function (x) { return x.id === id; }) || LH_DATA.news[0];
     function paint() {
       var d = new Date(n.date);
-      var months = window.KES_I18N.t("meta.months").split(",");
-      document.title = n[LANG()].title + " — " + window.KES_I18N.t("brand.name");
+      var months = window.LH_I18N.t("meta.months").split(",");
+      document.title = n[LANG()].title + " — " + window.LH_I18N.t("brand.name");
       host.innerHTML =
         '<img class="main-img" src="' + esc(n.thumb) + '" alt="' + esc(n[LANG()].title) + '" referrerpolicy="no-referrer" style="border-radius:var(--r-xl);box-shadow:var(--sh-md);max-height:440px;width:100%;object-fit:cover">' +
-        '<span class="eyebrow" style="margin-top:26px">' + esc(window.KES_I18N.t("news.cat." + n.cat)) + '</span>' +
+        '<span class="eyebrow" style="margin-top:26px">' + esc(window.LH_I18N.t("news.cat." + n.cat)) + '</span>' +
         '<h1 style="font-size:clamp(1.7rem,3.4vw,2.5rem)">' + esc(n[LANG()].title) + '</h1>' +
-        '<p style="color:var(--ink-faint);font-weight:700">' + d.getDate() + " " + (months[d.getMonth()] || "") + " " + d.getFullYear() + '</p>' +
+        (n.date ? '<p style="color:var(--ink-faint);font-weight:700">' + d.getDate() + " " + (months[d.getMonth()] || "") + " " + d.getFullYear() + '</p>' : '') +
         n[LANG()].body.map(function (par) { return '<p style="color:var(--ink-soft);font-size:1.03rem">' + esc(par) + '</p>'; }).join("") +
-        '<a class="btn btn-sky" target="_blank" rel="noopener" href="' + esc(n.fbUrl) + '">' + esc(window.KES_I18N.t("news.seeOnFb")) + '</a>';
+        '<a class="btn btn-sky" target="_blank" rel="noopener" href="' + esc(n.fbUrl) + '">' + esc(window.LH_I18N.t("news.seeOnFb")) + '</a>';
     }
     paint();
-    document.addEventListener("kes:langchange", paint);
+    document.addEventListener("lh:langchange", paint);
   }
 
-  /* ---------------- forms ---------------- */
+  /* ---------------- forms + toast ---------------- */
   function initForms() {
     $$("form[data-form]").forEach(function (form) { wireForm(form); });
   }
@@ -426,7 +459,7 @@
     if (wrap) {
       wrap.classList.toggle("error", !!errKey);
       var msg = wrap.querySelector(".field-error");
-      if (msg && errKey) msg.textContent = window.KES_I18N.t(errKey);
+      if (msg && errKey) msg.textContent = window.LH_I18N.t(errKey);
     }
     return !errKey;
   }
@@ -446,11 +479,10 @@
       });
       if (!allOk) { if (firstBad) firstBad.focus(); return; }
       form.reset();
-      showToast(window.KES_I18N.t(form.getAttribute("data-success-key") || "form.toastSuccess"));
+      showToast(window.LH_I18N.t(form.getAttribute("data-success-key") || "form.toastSuccess"));
     });
   }
 
-  /* ---------------- toast ---------------- */
   function showToast(text) {
     var old = $(".toast");
     if (old) old.remove();
@@ -462,31 +494,53 @@
     setTimeout(function () { t.classList.remove("show"); setTimeout(function () { t.remove(); }, 450); }, 4200);
   }
 
-
   /* ---------------- media slots ---------------- */
   function fillMedia() {
-    if (!window.KES_MEDIA) return;
+    if (!window.LH_MEDIA) return;
     $$("[data-media]").forEach(function (img) {
-      var slot = window.KES_MEDIA[img.getAttribute("data-media")];
+      var slot = window.LH_MEDIA[img.getAttribute("data-media")];
       if (slot && slot.src) {
         if (!img.getAttribute("src")) img.src = slot.src;
       }
     });
   }
 
-  /* ---------------- boot ---------------- */
-  function renderAllDynamic() {
-    renderGallery(); renderVideos(); renderPrograms(); renderTeachers(); renderNews(); renderNewsDetails();
+  /* Broken-image fallback: swap failed CDN thumbs for the branded placeholder. */
+  function initImageFallback() {
+    var PH = '<svg viewBox="0 0 64 64" class="img-ph-svg" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="rgba(255,255,255,.14)"/><ellipse cx="32" cy="16.5" rx="9" ry="3" fill="none" stroke="#FFC533" stroke-width="2.6"/><path d="M45 44H20a8 8 0 0 1-1.6-15.84A12 12 0 0 1 41.6 24 9 9 0 0 1 45 44Z" fill="rgba(255,255,255,.85)"/></svg>';
+    function toPlaceholder(img) {
+      var host = img.closest(".vc-thumb, .sc-thumb, .gallery-item, .pc-media, .split-media, .hero-photo-frame");
+      if (!host || host.dataset.phApplied) return;
+      host.dataset.phApplied = "1";
+      img.style.display = "none";
+      var span = document.createElement("span");
+      span.className = "vc-placeholder";
+      span.innerHTML = PH;
+      host.insertBefore(span, host.firstChild);
+    }
+    document.addEventListener("error", function (e) {
+      var t = e.target;
+      if (t && t.tagName === "IMG") toPlaceholder(t);
+    }, true);
+    /* also scan once at boot (cached failures may not re-fire) */
+    window.setTimeout(function () {
+      28394("img").forEach(function (img) {
+        if (img.complete && img.naturalWidth === 0) toPlaceholder(img);
+      });
+    }, 2500);
   }
 
+  /* ---------------- boot ---------------- */
   document.addEventListener("DOMContentLoaded", function () {
-    initHeader(); initDrawer(); initDropdowns(); initReveal(); initBackTop(); initStats();
-    initGalleryFilters(); renderGallery(); renderVideos(); renderPrograms(); renderTeachers(); renderNews(); renderNewsDetails(); fillMedia();
-    initTestimonials(); initForms();
-    document.addEventListener("kes:langchange", function () {
-      renderGallery(); renderVideos(); renderPrograms(); renderTeachers(); renderNews();
-      initGalleryFilters(); applyCatLabels(); initReveal(); fillMedia();
-      // lightbox/video modal texts refresh on next open
+    initHeader(); initDrawer(); initDropdowns(); initReveal(); initBackTop();
+    initGalleryFilters(); renderGallery();
+    initVideoFilters(); renderVideos();
+    renderStories();
+    renderPrograms(); renderNews(); renderNewsDetails(); fillMedia();
+    initForms();
+    document.addEventListener("lh:langchange", function () {
+      renderGallery(); renderVideos(); renderStories(); renderPrograms(); renderNews();
+      initGalleryFilters(); initVideoFilters(); applyCatLabels(); initReveal(); fillMedia();
     });
   });
 })();

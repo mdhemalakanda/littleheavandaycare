@@ -1,7 +1,8 @@
 /* ============================================================
-   KIDS EXPRESS SCHOOL — Design System
+   LITTLE HEAVEN DAYCARE & PRESCHOOL — Design System
    Bilingual (English + বাংলা) premium kids-school website
-   Palette: warm cream base · sky blue · sunny yellow · fresh green · coral
+   Palette: warm cream base · heavenly sky · halo gold · fresh green · rose coral
+   ============================================================ */
    ============================================================ */
 
 :root {
@@ -758,4 +759,139 @@ html[lang="bn"] .eyebrow { letter-spacing: .02em; }
 @media (max-width: 400px) {
   .gallery-grid { grid-template-columns: 1fr; }
   .gallery-item.g-wide { grid-column: span 1; }
+}
+
+/* ============================================================
+   LITTLE HEAVEN additions — Iframely embeds, video cards, stories
+   (appended; all other component styles above remain shared)
+   ============================================================ */
+
+/* Iframely responsive containers */
+.iframely-embed { margin: 0; }
+.iframely-responsive {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+  border-radius: var(--r-md);
+  background: #101623;
+}
+.iframely-responsive a { position: absolute; inset: 0; }
+.iframely-responsive iframe,
+.iframely-responsive ins,
+.iframely-responsive img {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  border: 0;
+}
+
+/* platform chips for video page */
+.video-chips { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 34px; }
+
+/* video cards */
+.video-card {
+  background: var(--white); border-radius: var(--r-lg); overflow: hidden;
+  box-shadow: var(--sh-sm); cursor: pointer; border: 1px solid var(--line);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.video-card:hover { transform: translateY(-5px); box-shadow: var(--sh-md); }
+.video-card .vc-thumb {
+  position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: #223;
+}
+.video-card .vc-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.video-card .vc-thumb.no-thumb { background: linear-gradient(135deg, #2E86C1 0%, #1B4F72 100%); }
+.vc-placeholder { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+.vc-placeholder svg { width: 84px; height: 84px; opacity: .9; filter: drop-shadow(0 6px 14px rgba(0,0,0,.25)); }
+.vc-play-btn {
+  position: absolute; inset: 0; margin: auto; width: 58px; height: 58px;
+  border-radius: 50%; background: rgba(255, 249, 241, .92); display: flex;
+  align-items: center; justify-content: center; transition: transform .2s ease, background .2s ease;
+  z-index: 2;
+}
+.video-card:hover .vc-play-btn, .story-card:hover .vc-play-btn { transform: scale(1.08); background: var(--sun); }
+.vc-play {
+  width: 0; height: 0; border-style: solid; border-width: 9px 0 9px 15px;
+  border-color: transparent transparent transparent var(--ink); margin-left: 4px;
+}
+.vc-duration {
+  position: absolute; right: 10px; bottom: 10px; background: rgba(20, 24, 34, .82);
+  color: #fff; font-size: .74rem; font-weight: 700; padding: 3px 8px; border-radius: 8px; z-index: 2;
+}
+.vc-platform {
+  position: absolute; top: 10px; left: 10px; z-index: 2;
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: .72rem; font-weight: 800; letter-spacing: .02em;
+  padding: 4px 10px; border-radius: 999px; color: #fff;
+}
+.vc-platform svg { width: 12px; height: 12px; }
+.vc-platform.p-fb { background: #1877F2; }
+.vc-platform.p-ig { background: linear-gradient(45deg, #F58529, #DD2A7B 55%, #8134AF); }
+.vc-body { padding: 20px 22px 24px; }
+.vc-cat {
+  display: inline-block; font-size: .72rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--sky-deep); background: var(--sky-soft);
+  border-radius: 999px; padding: 3px 11px; margin-bottom: 10px;
+}
+.vc-body h3 { font-size: 1.12rem; margin-bottom: .35em; }
+.vc-body p { color: var(--ink-soft); font-size: .92rem; margin: 0; }
+.vc-source {
+  display: inline-block; margin-top: 12px; font-size: .86rem; font-weight: 700;
+  color: var(--sky-deep); text-decoration: underline; text-underline-offset: 3px;
+}
+
+/* story cards (parent & teacher reels) */
+.story-card {
+  background: var(--white); border-radius: var(--r-lg); overflow: hidden;
+  box-shadow: var(--sh-sm); cursor: pointer; border: 1px solid var(--line);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.story-card:hover { transform: translateY(-5px); box-shadow: var(--sh-md); }
+.story-card .sc-thumb { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: linear-gradient(135deg, #8E44AD 0%, #5B2C6F 100%); }
+.story-card .sc-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.sc-platform {
+  position: absolute; top: 10px; right: 10px; z-index: 2; width: 30px; height: 30px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; color: #fff;
+}
+.sc-platform svg { width: 15px; height: 15px; }
+.sc-platform.p-fb { background: #1877F2; }
+.sc-platform.p-ig { background: linear-gradient(45deg, #F58529, #DD2A7B 55%, #8134AF); }
+.sc-body { padding: 20px 22px 24px; }
+.sc-body p { font-weight: 700; font-size: 1.02rem; margin-bottom: .5em; }
+.sc-body > span { color: var(--ink-soft); font-size: .9rem; display: block; }
+.sc-kind {
+  display: inline-block; margin-top: 14px; font-size: .72rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .06em; padding: 3px 11px; border-radius: 999px;
+}
+.sc-kind.k-parent { color: var(--coral-deep); background: var(--coral-soft); }
+.sc-kind.k-teacher { color: var(--grass-deep); background: var(--grass-soft); }
+
+/* video modal tweaks (uses shared .video-modal styles above) */
+.vm-body { max-width: min(720px, 94vw); }
+.vm-x {
+  position: absolute; top: 10px; right: 10px; z-index: 5; width: 38px; height: 38px;
+  border-radius: 50%; background: rgba(20, 24, 34, .72); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+}
+.vm-x:hover { background: rgba(20, 24, 34, .9); }
+.vm-frame { position: relative; min-height: 220px; }
+.vm-fallback {
+  text-align: center; padding: 34px 22px; background: var(--sky-soft);
+  border-radius: var(--r-md); margin-bottom: 18px;
+}
+.vm-fb-icon svg { width: 72px; height: 72px; margin: 0 auto 12px; display: block; }
+.vm-fb-note { color: var(--ink-soft); font-weight: 600; max-width: 34em; margin: 0 auto 16px; }
+.vm-fb-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.vm-actions { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; align-items: center; }
+.vm-generator {
+  font-size: .8rem; color: var(--ink-faint); text-decoration: underline;
+  text-underline-offset: 3px; margin-left: auto;
+}
+.vm-generator:hover { color: var(--sky-deep); }
+
+/* lightbox source link */
+.lb-source {
+  display: inline-flex; margin-top: 10px; font-size: .82rem; font-weight: 700;
+  color: var(--sun); text-decoration: underline; text-underline-offset: 3px;
 }

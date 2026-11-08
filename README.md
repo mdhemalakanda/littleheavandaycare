@@ -1,14 +1,15 @@
-# Kids Express School — bilingual website demo
+# Little Heaven Daycare & Preschool — bilingual website demo
 
-A complete, premium, bilingual (English + বাংলা) frontend demonstration for
-**Kids Express School & Day-Care Centre**, Mirpur, Dhaka — built as a client
-proposal. Static HTML/CSS/JS, zero build dependencies.
+A complete, premium, bilingual (English + বাংলা) static website for **Little Heaven -
+Daycare, Preschool & Playzone**, Dhanmondi 4, Dhaka — built as a client proposal from
+the Kids Express design foundation, fully rebranded and content-sourced from Little
+Heaven's official Facebook and Instagram presence.
 
 ## Run it
 
 ```bash
 node scripts/build.mjs      # compose site/ from templates/ + src/pages/
-node scripts/qa.mjs         # i18n coverage + link + form audit
+node scripts/qa.mjs         # i18n coverage + link + form + old-brand audit
 ./scripts/serve.sh          # http://localhost:8130  (serves site/)
 ```
 
@@ -19,42 +20,41 @@ because scripts are classic, not modules.)
 
 ```
 templates/        head / header / footer / scripts partials (shared chrome)
-src/pages/        page fragments (content sections only)
-scripts/build.mjs composes templates + fragments -> site/*.html
-assets/css/style.css   full design system (tokens, components, responsive)
-assets/js/i18n.js      language engine (data-i18n attributes, localStorage)
-assets/js/translations.js   centralized EN + BN dictionary
-assets/js/main.js      interactions: nav/drawer, gallery+lightbox, video
-                       popups (iframely), carousel, count-up, form validation
-assets/data/*.js       bilingual content: media, programs, teachers, news,
-                       videos, testimonials
+src/pages/        13 page fragments (content sections only)
+scripts/build.mjs composes templates + fragments -> site/*.html (+ robots.txt, sitemap.xml)
+scripts/qa.mjs    i18n (EN+BN), internal links, form structure, old-brand scan
+assets/css/style.css   design system (tokens, components, responsive, iframely styles)
+assets/js/i18n.js      language engine (data-i18n attributes, localStorage lh_lang)
+assets/js/iframely.js  URL whitelist + dynamic generator URLs + embed render/fallback
+assets/js/main.js      interactions: nav/drawer, gallery+lightbox, video modal (Iframely
+                       click-to-load + fallback), stories, programs, news, forms
+assets/data/*.js       bilingual content: translations, media, videos (24 reels),
+                       programs, news (8 dated posts), stories (4 official reels)
+docs/                  project documentation + research sources (this is NOT the built site)
 ```
 
 ### Language system
-- Centralized dictionary (`translations.js`), applied via `data-i18n` /
-  `data-i18n-attr` attributes. No scattered conditionals.
-- Persisted in `localStorage("kes_lang")`; consistent across all 16 pages,
-  survives refresh and direct page opens.
-- Typography swaps automatically for Bangla: Baloo Da 2 / Hind Siliguri via
-  `html[lang="bn"]` rules, with extra line-height so Bangla never breaks.
+- Centralized dictionary (`translations.js`, 332 keys × EN/BN), applied via `data-i18n`.
+- Persisted in `localStorage("lh_lang")`; Bangla typography auto-swaps via `html[lang="bn"]`.
 
 ### Media policy (per client instruction)
-- Photos are **hotlinked from the school's Facebook CDN** — no local copies.
-  fbcdn URLs are signed and can expire; regenerate lists via the Safari
-  harvest pipeline (see `assets/data/sources/`).
-- Videos play **in a popup via iframely**
-  (`https://iframely.com/domains/facebook?url=<fb video url>`) — nothing is
-  stored locally.
+- Photos are **hotlinked from the official Facebook/Instagram CDN** — no local copies.
+  Signed URLs may expire; sources archived in `docs/research-sources/` for regeneration,
+  and any failed image auto-swaps to a branded placeholder at runtime.
+- Videos/Reels play in a click-to-load modal via **Iframely embed.js**
+  (`https://iframely.net/embed.js`, `data-iframely-url` = original post URL, `iframely.load()`
+  after insertion, timeout → honest fallback card with the original post link).
+  Generator preview URLs (`https://iframely.com/domains/{facebook|instagram}?url=…`)
+  are derived dynamically for every item and shown in each video modal for QA.
+- Nothing is downloaded; nothing is re-hosted; every card links back to the original post.
 
 ### Honest content rules
-- Real, verified facts only (name, phones, email, address, since 2006, FB page).
-- Programs structure, teacher profiles and testimonials are clearly-labelled
-  demonstration content awaiting school confirmation.
+- Real, verified facts only (name, phones, email, address, hours, shifts, ages, sister school).
+- The 7-point "Why parents choose" list, activities, news items and stories all trace to
+  official posts — see `docs/SOCIAL_MEDIA_AUDIT.md`.
+- No invented teachers, testimonials, ratings, founding years or statistics.
 - The demo form stores nothing and sends nothing.
 
-## Future WordPress integration
-Data files (`assets/data/*.js`) mirror the content model 1:1 (programs,
-teachers, news, videos, gallery items) — each maps directly to a post type /
-REST endpoint. i18n dictionary maps to a bilingual fields plugin (e.g. Polylang
-multipack). Forms are ready to POST to a WP REST endpoint
-(`wireForm` in main.js is the single integration point).
+## Documentation
+`docs/PROJECT_AUDIT.md` · `SOCIAL_MEDIA_AUDIT.md` · `BRAND_GUIDELINES.md` ·
+`PROJECT_REQUIREMENTS.md` · `MEDIA_PLACEMENT_MAP.md` · `IMPLEMENTATION_REPORT.md`

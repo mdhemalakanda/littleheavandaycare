@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /* ============================================================
-   KIDS EXPRESS SCHOOL — static page builder (zero dependencies)
+   LITTLE HEAVEN DAYCARE & PRESCHOOL — static page builder (zero dependencies)
    Composes final pages in site/ from templates/ + src/pages/.
    Run:  node scripts/build.mjs
-   Serve: cd site && python3 -m http.server 8090
+   Serve: ./scripts/serve.sh  (http://localhost:8130)
    ============================================================ */
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, cpSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, cpSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -13,25 +13,24 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const T = (p) => readFileSync(join(ROOT, "templates", p), "utf8");
 const P = (p) => readFileSync(join(ROOT, "src", "pages", p), "utf8");
 
+const BRAND = "Little Heaven Daycare & Preschool";
+
 /* Page registry — one entry per output page.
    nav: which nav item is active (or null). titleKey/descKey are i18n keys. */
 const PAGES = {
-  "index.html":            { page: "index.html",            nav: "home",      titleKey: "meta.titleHome",    titleEn: "Kids Express School — A Happy Place to Learn & Grow", descEn: "Kids Express School & Day-Care Centre, Mirpur, Dhaka. English-version pre-school for toddlers, pre-schoolers and kindergarteners. Serving parents since 2006." },
-  "about.html":            { page: "about.html",            nav: "about",     titleKey: "meta.titleAbout",   titleEn: "About Us — Kids Express School", descEn: "Learn about Kids Express School & Day-Care Centre — our story, mission and learning environment in Mirpur, Dhaka." },
-  "programs.html":         { page: "programs.html",         nav: "programs",  titleKey: "meta.titlePrograms",titleEn: "Our Programs — Kids Express School", descEn: "Play Group, Nursery, Kindergarten, Pre-Primary and Day-Care programs at Kids Express School." },
-  "program-day-care.html": { page: "program-day-care.html", nav: "programs",  titleKey: "meta.titlePDaycare",titleEn: "Day-Care Program — Kids Express School", descEn: "Caring, safe day-care service for children at Kids Express School, Mirpur, Dhaka." },
-  "program-play-group.html":{ page: "program-play-group.html",nav:"programs",  titleKey: "meta.titlePPlay",   titleEn: "Play Group — Kids Express School", descEn: "Play Group program at Kids Express School — first steps into joyful learning." },
-  "program-nursery.html":  { page: "program-nursery.html",  nav: "programs",  titleKey: "meta.titlePNursery",titleEn: "Nursery — Kids Express School", descEn: "Nursery program at Kids Express School — learning through play, stories and songs." },
-  "program-kindergarten.html":{page:"program-kindergarten.html",nav:"programs",titleKey: "meta.titlePKg",     titleEn: "Kindergarten — Kids Express School", descEn: "Kindergarten program at Kids Express School — confident school readiness in English." },
-  "program-pre-primary.html":{page:"program-pre-primary.html",nav: "programs", titleKey: "meta.titlePPre",    titleEn: "Pre-Primary — Kids Express School", descEn: "Pre-Primary program at Kids Express School — a strong bridge into primary school." },
-  "teachers.html":         { page: "teachers.html",         nav: "teachers",  titleKey: "meta.titleTeachers",titleEn: "Our Teachers — Kids Express School", descEn: "Meet the caring teachers of Kids Express School & Day-Care Centre." },
-  "activities.html":       { page: "activities.html",       nav: "activities",titleKey: "meta.titleActivities",titleEn: "Activities — Kids Express School", descEn: "Art, music, storytelling, outdoor play and more — learning activities at Kids Express School." },
-  "gallery.html":          { page: "gallery.html",          nav: "gallery",   titleKey: "meta.titleGallery", titleEn: "Gallery — Kids Express School", descEn: "Photos from classrooms, celebrations and everyday smiles at Kids Express School." },
-  "videos.html":           { page: "videos.html",           nav: "videos",    titleKey: "meta.titleVideos",  titleEn: "Videos — Kids Express School", descEn: "Watch school videos from Kids Express School & Day-Care Centre." },
-  "news.html":             { page: "news.html",             nav: "news",      titleKey: "meta.titleNews",    titleEn: "News & Events — Kids Express School", descEn: "Latest news, events and updates from Kids Express School & Day-Care Centre." },
-  "news-details.html":     { page: "news-details.html",     nav: "news",      titleKey: "meta.titleNews",    titleEn: "News — Kids Express School", descEn: "News story from Kids Express School & Day-Care Centre." },
-  "admission.html":        { page: "admission.html",        nav: "admission", titleKey: "meta.titleAdmission",titleEn: "Admission — Kids Express School", descEn: "Apply for admission to Kids Express School & Day-Care Centre, Mirpur, Dhaka." },
-  "contact.html":          { page: "contact.html",          nav: "contact",   titleKey: "meta.titleContact", titleEn: "Contact Us — Kids Express School", descEn: "Contact Kids Express School & Day-Care Centre — phone, email, address and inquiry form." },
+  "index.html":            { page: "index.html",            nav: "home",      titleKey: "meta.titleHome",    titleEn: "Little Heaven Daycare & Preschool — Where Little Minds Learn, Play & Grow", descEn: "Daycare (full day / half day), preschool and a highly equipped playzone in Dhanmondi 4, Dhaka. Play-based learning for children 6 months and up. Admissions open." },
+  "about.html":            { page: "about.html",            nav: "about",     titleKey: "meta.titleAbout",   titleEn: "About Us — Little Heaven Daycare & Preschool", descEn: "Learn about Little Heaven — a little place with big dreams in Dhanmondi, Dhaka, in the same building as Saalim Wisdom School." },
+  "programs.html":         { page: "programs.html",         nav: "programs",  titleKey: "meta.titlePrograms",titleEn: "Our Programs — Little Heaven Daycare & Preschool", descEn: "Daycare, Preschool and Playzone programs at Little Heaven, Dhanmondi 4, Dhaka." },
+  "program-day-care.html": { page: "program-day-care.html", nav: "programs",  titleKey: "meta.titlePDaycare",titleEn: "Daycare Program — Little Heaven Daycare & Preschool", descEn: "Caring full-day and half-day daycare for children 6 months and up at Little Heaven, Dhanmondi, Dhaka." },
+  "program-preschool.html":{ page: "program-preschool.html",nav: "programs",  titleKey: "meta.titlePPreschool",titleEn: "Preschool Program — Little Heaven Daycare & Preschool", descEn: "Play-based preschool at Little Heaven — morning shift 9:30–11:30 AM and day shift 12:00–2:00 PM, Sunday–Thursday, from age 2." },
+  "program-playzone.html": { page: "program-playzone.html", nav: "programs",  titleKey: "meta.titlePPlayzone",titleEn: "Playzone — Little Heaven Daycare & Preschool", descEn: "A highly equipped indoor playzone at Little Heaven — Friday & Saturday, 3:30–5:00 PM, for ages 3–10." },
+  "activities.html":       { page: "activities.html",       nav: "activities",titleKey: "meta.titleActivities",titleEn: "Activities — Little Heaven Daycare & Preschool", descEn: "Color matching, problem-solving, pretend play, sensory activities, water play and more — real activities at Little Heaven." },
+  "gallery.html":          { page: "gallery.html",          nav: "gallery",   titleKey: "meta.titleGallery", titleEn: "Gallery — Little Heaven Daycare & Preschool", descEn: "Photos from classrooms, celebrations and everyday smiles at Little Heaven — from our official Facebook and Instagram pages." },
+  "videos.html":           { page: "videos.html",           nav: "videos",    titleKey: "meta.titleVideos",  titleEn: "Videos — Little Heaven Daycare & Preschool", descEn: "Watch reels and videos from Little Heaven's official Facebook and Instagram pages." },
+  "news.html":             { page: "news.html",             nav: "news",      titleKey: "meta.titleNews",    titleEn: "News & Events — Little Heaven Daycare & Preschool", descEn: "Latest news, events and updates from Little Heaven - Daycare, Preschool & Playzone." },
+  "news-details.html":     { page: "news-details.html",     nav: "news",      titleKey: "meta.titleNews",    titleEn: "News — Little Heaven Daycare & Preschool", descEn: "News story from Little Heaven - Daycare, Preschool & Playzone." },
+  "admission.html":        { page: "admission.html",        nav: "admission", titleKey: "meta.titleAdmission",titleEn: "Admission — Little Heaven Daycare & Preschool", descEn: "Admissions are open at Little Heaven, Dhanmondi 4, Dhaka. Preschool morning and day shifts, daycare full and half day. Call 01947-771948." },
+  "contact.html":          { page: "contact.html",          nav: "contact",   titleKey: "meta.titleContact", titleEn: "Contact Us — Little Heaven Daycare & Preschool", descEn: "Contact Little Heaven — phone 01947-771948, email, WhatsApp, address in Dhanmondi 4, Dhaka and inquiry form." },
 };
 
 function fill(tpl, map) {
@@ -39,7 +38,7 @@ function fill(tpl, map) {
 }
 
 function navActive(nav) {
-  const keys = ["home", "about", "programs", "activities", "gallery", "videos", "news", "admission", "contact", "teachers"];
+  const keys = ["home", "about", "programs", "activities", "gallery", "videos", "news", "admission", "contact"];
   const out = {};
   keys.forEach((k) => { out["ACTIVE_" + k.toUpperCase()] = k === nav ? ' aria-current="page"' : ""; });
   return out;
@@ -71,14 +70,21 @@ for (const [out, cfg] of Object.entries(PAGES)) {
 }
 
 /* copy assets into site/ so the output is fully self-contained */
-mkdirSync(join(ROOT, "site"), { recursive: true });
 cpSync(join(ROOT, "assets"), join(ROOT, "site", "assets"), { recursive: true });
 
-/* keep docs/ (GitHub Pages folder) in sync when it exists */
-import { existsSync } from "node:fs";
-if (existsSync(join(ROOT, "docs"))) {
-  cpSync(join(ROOT, "site"), join(ROOT, "docs"), { recursive: true });
-  console.log("docs/ synced from site/");
-}
+/* robots.txt + sitemap.xml (relative URLs — no production domain is invented) */
+writeFileSync(join(ROOT, "site", "robots.txt"),
+`User-agent: *
+Allow: /
 
-console.log("done:", Object.keys(PAGES).length, "pages");
+Sitemap: sitemap.xml
+`);
+const pageList = Object.keys(PAGES);
+writeFileSync(join(ROOT, "site", "sitemap.xml"),
+`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${pageList.map((p) => `  <url><loc>${p}</loc></url>`).join("\n")}
+</urlset>
+`);
+
+console.log("done:", pageList.length, "pages + robots.txt + sitemap.xml");

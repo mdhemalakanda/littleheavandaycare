@@ -1,0 +1,7 @@
+# Iframely verification (2026-11-08)
+- https://iframely.net/embed.js  → HTTP 200, 23,742 bytes, application/javascript  ✓
+- Generator URL pattern FB: https://iframely.com/domains/facebook?url=<encodeURIComponent(fbUrl)> → HTTP 200 (tested with reel/1104273765763702 and reel/1131473072699403)  ✓
+- Generator URL pattern IG: https://iframely.com/domains/instagram?url=<encodeURIComponent(igUrl)> → HTTP 200 (tested with reels/DfKgrF3INIe and reel/DCt1YRMyxG_)  ✓
+- Public https://iframely.com/oembed?url=... WITHOUT api_key → returns dashboard HTML page, NOT JSON. Confirms no-key embed.js is the correct public integration path.
+- NOTE: user-supplied sample reel https://www.instagram.com/reel/DfKgrF3INIe/ belongs to @thom.halalbiz (a marketing account), NOT Little Heaven. Verified 2026-11-08 via post page og:title. The sample FB reel ID 1104273765763702 was not verifiable as a Little Heaven post; treated as generator-pattern examples only.
+- Facebook video pages expose graph.facebook.com/v27.0/oembed_video alternate link (requires app token — not usable without key).

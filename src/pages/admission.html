@@ -7,7 +7,7 @@
       <span data-i18n="adm.title">Apply for Admission</span>
     </nav>
     <h1 class="page-title" data-i18n="adm.title">Apply for Admission</h1>
-    <p class="page-sub" data-i18n="adm.sub">Tell us about your little one — we will call you back with seats, details and everything you want to know.</p>
+    <p class="page-sub" data-i18n="adm.sub">Tell us about your little one — we will call you back with seats, shifts and everything you want to know.</p>
   </div>
 </section>
 
@@ -17,6 +17,19 @@
     <div class="split" style="align-items:start">
       <!-- LEFT: info stack -->
       <div class="reveal" style="display:grid;gap:22px">
+        <div class="info-panel">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            <span data-i18n="adm.timesTitle">Times &amp; ages</span>
+          </h3>
+          <div class="info-rows">
+            <div class="info-row"><b data-i18n="adm.v1k">Daycare</b><span data-i18n="adm.v1v">6 months + · 9:00 AM – 5:00 PM · full / half day</span></div>
+            <div class="info-row"><b data-i18n="adm.v2k">Preschool morning</b><span data-i18n="adm.v2v">Age 2+ · 9:30 – 11:30 AM</span></div>
+            <div class="info-row"><b data-i18n="adm.v3k">Preschool day</b><span data-i18n="adm.v3v">Age 2+ · 12:00 – 2:00 PM</span></div>
+            <div class="info-row"><b data-i18n="adm.v4k">Days</b><span data-i18n="adm.v4v">Sunday – Thursday</span></div>
+          </div>
+        </div>
+
         <div class="info-panel">
           <h3>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 12h6M9 16h6M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9Z"/><path d="M13 3v6h6"/></svg>
@@ -29,11 +42,11 @@
             </div>
             <div style="display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-bottom:1px dashed var(--line)">
               <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:var(--sky-soft);color:var(--sky-deep);font-family:var(--f-display);font-weight:700;font-size:1rem;flex:none">2</span>
-              <span><b style="font-family:var(--f-display);display:block" data-i18n="adm.s2t">We call you back</b><span style="color:var(--ink-soft);font-size:.95rem" data-i18n="adm.s2p">Our team contacts you to talk about your child's age, class and timing.</span></span>
+              <span><b style="font-family:var(--f-display);display:block" data-i18n="adm.s2t">We call you back</b><span style="color:var(--ink-soft);font-size:.95rem" data-i18n="adm.s2p">Our team contacts you to talk about your child's age, program and shift.</span></span>
             </div>
             <div style="display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-bottom:1px dashed var(--line)">
               <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:var(--grass-soft);color:var(--grass-deep);font-family:var(--f-display);font-weight:700;font-size:1rem;flex:none">3</span>
-              <span><b style="font-family:var(--f-display);display:block" data-i18n="adm.s3t">Visit the school</b><span style="color:var(--ink-soft);font-size:.95rem" data-i18n="adm.s3p">Come see the classrooms and meet our teachers in person at Shewra Para, Mirpur.</span></span>
+              <span><b style="font-family:var(--f-display);display:block" data-i18n="adm.s3t">Visit us</b><span style="color:var(--ink-soft);font-size:.95rem" data-i18n="adm.s3p">Come see the classrooms and playzone in person at Dhanmondi 4, House 12/B.</span></span>
             </div>
             <div style="display:flex;gap:14px;align-items:flex-start;padding:12px 0">
               <span aria-hidden="true" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:var(--sun-soft);color:var(--sun-deep);font-family:var(--f-display);font-weight:700;font-size:1rem;flex:none">4</span>
@@ -65,8 +78,8 @@
             <span data-i18n="adm.callTitle">Prefer to talk?</span>
           </h3>
           <div style="display:flex;gap:12px;flex-wrap:wrap">
-            <a class="btn btn-sky" href="tel:+8801977989213">01977-989213</a>
-            <a class="btn btn-primary" href="tel:+8801720306752">01720-306752</a>
+            <a class="btn btn-sky" href="tel:+8801947771948">01947-771948</a>
+            <a class="btn btn-primary" href="tel:+8801912904680">01912-904680</a>
           </div>
         </div>
       </div>
@@ -77,7 +90,7 @@
           <h2 style="margin-top:0" data-i18n="adm.formTitle">Admission inquiry form</h2>
           <form data-form data-success-key="form.toastSuccess" novalidate>
             <div class="form-grid">
-              <div class="form-demo-note">
+              <div class="form-demo-note" style="grid-column:1/-1">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
                 <span data-i18n="form.demoNote">This is a demonstration form — nothing is stored or sent to the school. After the website is approved, submissions will go directly to the school office.</span>
               </div>
@@ -111,11 +124,9 @@
                 <label><span data-i18n="form.program">Interested program</span><span class="req">*</span></label>
                 <select name="program" required>
                   <option value="" disabled selected data-i18n="form.optSelect">Please select a program</option>
-                  <option value="day-care" data-i18n="form.optDaycare">Day-Care</option>
-                  <option value="play-group" data-i18n="form.optPlay">Play Group</option>
-                  <option value="nursery" data-i18n="form.optNursery">Nursery</option>
-                  <option value="kindergarten" data-i18n="form.optKg">Kindergarten</option>
-                  <option value="pre-primary" data-i18n="form.optPre">Pre-Primary</option>
+                  <option value="daycare" data-i18n="form.optDaycare">Daycare</option>
+                  <option value="preschool" data-i18n="form.optPreschool">Preschool</option>
+                  <option value="playzone" data-i18n="form.optPlayzone">Playzone</option>
                 </select>
                 <span class="field-error"></span>
               </div>
@@ -144,13 +155,13 @@
     <div class="cta-band reveal">
       <div>
         <h2 data-i18n="admCta.title">Ready to give your child a happy start?</h2>
-        <p style="margin-top:10px" data-i18n="admCta.p">Admission inquiry takes less than two minutes. Our team will call you back with all the details — seats, fees and everything you want to know.</p>
+        <p style="margin-top:10px" data-i18n="admCta.p">Admissions and enquiries are open. Call us or send the form — we will call you back with all the details about seats, shifts and fees.</p>
       </div>
       <div class="cta-actions">
         <a class="btn btn-primary btn-lg" href="#admission-form"><span data-i18n="admCta.b1">Apply for Admission</span></a>
-        <a class="btn btn-white btn-lg" href="tel:+8801977989213">
+        <a class="btn btn-white btn-lg" href="tel:+8801947771948">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.3-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.4 2.1L8.1 10a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.6 2Z"/></svg>
-          <span data-i18n="admCta.b2">Call 01977-989213</span>
+          <span data-i18n="admCta.b2">Call 01947-771948</span>
         </a>
       </div>
     </div>

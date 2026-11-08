@@ -1,46 +1,32 @@
-# Media & content provenance — Kids Express School demo
+# Media & content provenance — Little Heaven Daycare & Preschool
 
-All media belongs to **KIDS Express School And Day-Care center** and is pulled
-from their official public Facebook presence:
-https://www.facebook.com/kids.express.school/
+All media and business facts belong to **Little Heaven - Daycare, Preschool & Playzone**,
+pulled from their official public pages:
+- Facebook: https://www.facebook.com/littleheavendaycarepreschool (4,921 followers)
+- Instagram: https://www.instagram.com/littleheavendaycarepreschool/ (138 posts)
 
-Harvest date: **2026-11-05** (Safari AppleScript pipeline, logged-in session).
+Harvest date: **2026-11-08** (web-reader + web-search; logged-out, no downloads).
 
-## Verified school facts (from the Facebook page)
-- Name: KIDS Express School And Day-Care center — "KIDS EXPRESS PRE-SCHOOL AND DAY CARE"
-- Positioning: "A Specialized Eng.Vers School For Toddler, Pre-Schooler, kindergarten goers with day care service. Serving parents since 2006."
-- Phones: 01977-989213 (main, from page header/CTA), 01720-306752 (second)
-  (the page About section also shows a "01977979213" variant — likely a typo; both header numbers are used on the site)
-- Email: ferdausi.sumi34@gmail.com
-- Address: 963, East Shewra Para (old Koborsthan Goli, at Shewra Para bus stand), Begum Rokeya Sarani, Mirpur — along Metro pillar 308, Dhaka 1216
-- ~1.1K followers; category "School"; own domain kexpsdc.com is dead (DNS)
-- Videos: 3 recent "Good day all…" posts (27 Oct) + 10 reels on the Reels tab
-  (+ the example reel the client shared: facebook.com/reel/1638304324481425,
-  "Rafsan is learning…")
+## Facts source of truth
+docs/research-sources/fb-page-intro.txt · fb-posts-captions.txt · ig-profile.txt · iframely-checks.txt
+Full audit: docs/SOCIAL_MEDIA_AUDIT.md · placement: docs/MEDIA_PLACEMENT_MAP.md
 
-## Photos
-16 curated genuine school photos (birthday celebrations at the day-care,
-classroom gatherings, cultural events, school banner, play corridor) +
-named slots (hero/about/activities). All are **hotlinked fbcdn URLs** —
-no local copies, per client instruction. Signed URLs may expire; regenerate
-from `sources/*.txt` via the harvest pipeline.
+## Photos (assets/data/media.js)
+- `logo` / `logoJpg`: official FB profile picture (PNG + JPG variants) — hotlinked CDN URLs.
+- 9 square page photos from the FB photo carousel — used for hero/about/environment/activity slots.
+- 6 Instagram photo-post CDN URLs (640px) in LH_DATA.gallery + 9 of the FB photos = 15 gallery items.
+All are signed CDN URLs (valid until ~late Nov 2026 `oe=` parameter) — regenerate from
+docs/research-sources/ if they expire. Nothing is stored locally.
 
-Known exclusions: one "Dream Wall Studio" logo (unrelated ad/tag), profile
-avatars, tiny thumbnails, and the ~270 unrelated images from the general
-script-JSON pool (feed/ad contamination — never used).
+## Videos & Reels (assets/data/videos.js) — 24 items
+- 18 Facebook reels: 16 og-verified permalinks + 2 pending-permalink items
+  (Color Matching 3 Nov 2026 — newest post, not yet indexed; Transportation Week collage — no page permalink).
+- 6 Instagram reels (3 launch reels Nov 2024, 2 parent stories, 1 teacher story).
+- Thumbs: official CDN where mapped; unmapped items render a branded cloud placeholder.
+- Playback: Iframely embed.js (https://iframely.net/embed.js), click-to-load modal,
+  data-iframely-url = original post URL; fallback card with source link on failure.
 
-## Videos
-11 reels. Titles are honest generic descriptions based on thumbnail content
-(book-learning scenes / group photo); view counts captured 2026-11-05.
-Playback via iframely popup — nothing stored. If the school supplies original
-video files later, swap `assets/data/videos.js` entries to local files.
-
-## Demonstration content (clearly labelled on the site)
-- Program structure (5 programs + ages) — plausible for an English-version
-  pre-school but pending school confirmation
-- Teacher profiles — sample cards, no real names/photos (the page publishes none)
-- Testimonials — sample quotes marked as such
-- Statistics beyond "20+ years": Happy Students 300+, Staff 15+ are placeholders
-- Requirements/process steps on Admission — sample placeholders
-- News dates: only the 27 Oct 2026 "Good day" post is date-verified; others
-  intentionally show no date badge
+## Demo content (clearly labelled on the site)
+- Admission requirements checklist — sample placeholders pending school confirmation.
+- Daily daycare rhythm — derived from official post snippets; exact times to be confirmed.
+- Forms store nothing and send nothing.

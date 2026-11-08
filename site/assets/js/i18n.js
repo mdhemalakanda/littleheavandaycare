@@ -1,17 +1,16 @@
 /* ============================================================
-   KIDS EXPRESS SCHOOL — i18n engine
+   LITTLE HEAVEN — i18n engine
    Centralized bilingual (English + বাংলা) language management.
    Usage:
      <span data-i18n="nav.about">About Us</span>
-     <input data-i18n-attr="placeholder" data-i18n-ph="form.phonePh">
-     <title data-i18n="meta.titleHome">  (set on <title> element)
-   Dictionary lives in translations.js as window.KES_T = { en:{}, bn:{} }.
-   Selection persists in localStorage ("kes_lang").
+     <input data-i18n-attr="placeholder" data-i18n-key="form.phonePh">
+   Dictionary lives in translations.js as window.LH_T = { en:{}, bn:{} }.
+   Selection persists in localStorage ("lh_lang").
    ============================================================ */
 (function () {
   "use strict";
 
-  var STORAGE_KEY = "kes_lang";
+  var STORAGE_KEY = "lh_lang";
 
   var I18N = {
     lang: "en",
@@ -26,7 +25,7 @@
 
     t: function (key) {
       if (!key) return "";
-      var dict = window.KES_T || {};
+      var dict = window.LH_T || {};
       var v = (dict[this.lang] || {})[key];
       if (v === undefined) v = (dict.en || {})[key];
       if (v === undefined) v = key;
@@ -43,7 +42,6 @@
         var el = nodes[i];
         var txt = self.t(el.getAttribute("data-i18n"));
         var isHtml = el.getAttribute("data-i18n-html") !== null;
-        // HTML mode always replaces; text mode only when no element children (protects nested markup)
         if (isHtml) { el.innerHTML = txt; }
         else if (el.children.length === 0) { el.textContent = txt; }
       }
@@ -59,7 +57,6 @@
       var titleEl = document.querySelector("title[data-i18n]");
       if (titleEl) document.title = self.t(titleEl.getAttribute("data-i18n"));
 
-      // update switcher buttons everywhere (header + drawer + footer)
       var btns = document.querySelectorAll("[data-set-lang]");
       for (var k = 0; k < btns.length; k++) {
         var b = btns[k];
@@ -69,7 +66,7 @@
       }
 
       if (announce !== false) {
-        document.dispatchEvent(new CustomEvent("kes:langchange", { detail: { lang: self.lang } }));
+        document.dispatchEvent(new CustomEvent("lh:langchange", { detail: { lang: self.lang } }));
       }
     },
 
@@ -92,6 +89,6 @@
     }
   };
 
-  window.KES_I18N = I18N;
+  window.LH_I18N = I18N;
   document.addEventListener("DOMContentLoaded", function () { I18N.init(); });
 })();
