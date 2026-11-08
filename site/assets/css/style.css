@@ -932,3 +932,7 @@ html[lang="bn"] .eyebrow { letter-spacing: .02em; }
 .nd-hero { border-radius: var(--r-xl); overflow: hidden; box-shadow: var(--sh-md); background: linear-gradient(135deg, #3FA9D9 0%, #2286BB 100%); }
 .nd-hero img { display: block; width: 100%; max-height: 440px; object-fit: cover; }
 .nd-hero .vc-placeholder { min-height: 260px; }
+
+/* Reel (portrait) vs video (landscape) embed ratios — no more cropping */
+.vc-embed.ratio-portrait .iframely-responsive { padding-bottom: 178%; }
+.vc-embed.ratio-landscape .iframely-responsive { padding-bottom: 56.25%; }

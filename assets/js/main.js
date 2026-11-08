@@ -274,7 +274,7 @@
         /* Facebook itself refuses this embed — show the honest source card. */
         embedArea = '<div class="vc-embed">' + fallbackHtml(v.originalUrl) + '</div>';
       } else {
-        embedArea = '<div class="vc-embed" data-embed-url="' + esc(v.originalUrl) + '" data-embed-title="' + esc(pick(v, LANG())) + '"></div>';
+        embedArea = '<div class="vc-embed ratio-' + (v.orientation || "portrait") + '" data-embed-url="' + esc(v.originalUrl) + '" data-embed-title="' + esc(pick(v, LANG())) + '"></div>';
       }
       var srcLink = v.originalUrl
         ? '<a class="vc-source" target="_blank" rel="noopener" href="' + esc(v.originalUrl) + '">' + esc(sourceLabel(v.originalUrl)) + ' ↗</a>'
@@ -322,7 +322,7 @@
         ? (LANG() === "bn" ? "শিক্ষিকা" : "Teacher")
         : (LANG() === "bn" ? "অভিভাবক" : "Parent");
       var embedArea = (v.originalUrl && v.status === "confirmed" && !v.embedBlocked)
-        ? '<div class="vc-embed" data-embed-url="' + esc(v.originalUrl) + '" data-embed-title="' + esc(pick(s, LANG())) + '"></div>'
+        ? '<div class="vc-embed ratio-' + (v.orientation || "portrait") + '" data-embed-url="' + esc(v.originalUrl) + '" data-embed-title="' + esc(pick(s, LANG())) + '"></div>'
         : '<div class="vc-embed">' + pendingHtml(v.pageUrl || "https://www.facebook.com/littleheavendaycarepreschool/videos") + '</div>';
       return '<article class="story-card reveal" style="transition-delay:' + (i * 0.06) + 's">' +
         embedArea +
