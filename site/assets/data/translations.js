@@ -278,7 +278,6 @@ window.LH_T = {
     /* ---- videos page ---- */
     "vid.title": "School Videos",
     "vid.sub": "Watch our little world in motion — reels and videos from our official Facebook and Instagram pages.",
-    "vid.note": "Videos are played through Iframely's official embed service directly from Facebook and Instagram. Nothing is stored on this website, and the original post stays one click away.",
     "vid.fbCta": "Open our Facebook page",
     "vid.igCta": "Open our Instagram",
     "videos.play": "Play video",
@@ -664,7 +663,6 @@ window.LH_T = {
     /* ---- videos page ---- */
     "vid.title": "স্কুল ভিডিও",
     "vid.sub": "আমাদের ছোট্ট জগৎটা নড়াচড়ায় দেখুন — অফিসিয়াল ফেসবুক ও ইনস্টাগ্রাম পেজের রিল ও ভিডিও।",
-    "vid.note": "ভিডিওগুলো Iframely-এর অফিসিয়াল এমবেড সার্ভিসের মাধ্যমে সরাসরি ফেসবুক ও ইনস্টাগ্রাম থেকে চলে। এই ওয়েবসাইটে কিছুই সংরক্ষণ করা হয় না, আর মূল পোস্ট সবসময় এক ক্লিক দূরে।",
     "vid.fbCta": "আমাদের ফেসবুক পেজ",
     "vid.igCta": "আমাদের ইনস্টাগ্রাম",
     "videos.play": "ভিডিও চালান",
