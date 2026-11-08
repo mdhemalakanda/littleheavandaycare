@@ -13,7 +13,7 @@
   var $  = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
   var LANG = function () { return window.LH_I18N.lang; };
-  var pick = function (obj, field) { return obj && obj[field] ? obj[field][LANG()] || obj[field].en : ""; };
+  var pick = function (obj, lang, field) { field = field || "t"; return obj && obj[lang] && obj[lang][field] ? obj[lang][field] : (obj && obj.en && obj.en[field]) || ""; };
   var esc = function (s) {
     return String(s == null ? "" : s)
       .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -393,11 +393,11 @@
     function paint() {
       var d = new Date(n.date);
       var months = window.LH_I18N.t("meta.months").split(",");
-      document.title = n[LANG()].title + " — " + window.LH_I18N.t("brand.name");
+      document.title = n[LANG()].t + " — " + window.LH_I18N.t("brand.name");
       host.innerHTML =
-        '<img class="main-img" src="' + esc(n.thumb) + '" alt="' + esc(n[LANG()].title) + '" referrerpolicy="no-referrer" style="border-radius:var(--r-xl);box-shadow:var(--sh-md);max-height:440px;width:100%;object-fit:cover">' +
+        '<div class="nd-hero"><img src="' + esc(n.thumb) + '" alt="' + esc(n[LANG()].t) + '" loading="lazy" referrerpolicy="no-referrer"></div>' +
         '<span class="eyebrow" style="margin-top:26px">' + esc(window.LH_I18N.t("news.cat." + n.cat)) + '</span>' +
-        '<h1 style="font-size:clamp(1.7rem,3.4vw,2.5rem)">' + esc(n[LANG()].title) + '</h1>' +
+        '<h1 style="font-size:clamp(1.7rem,3.4vw,2.5rem)">' + esc(n[LANG()].t) + '</h1>' +
         (n.date ? '<p style="color:var(--ink-faint);font-weight:700">' + d.getDate() + " " + (months[d.getMonth()] || "") + " " + d.getFullYear() + '</p>' : '') +
         n[LANG()].body.map(function (par) { return '<p style="color:var(--ink-soft);font-size:1.03rem">' + esc(par) + '</p>'; }).join("") +
         '<a class="btn btn-sky" target="_blank" rel="noopener" href="' + esc(n.fbUrl) + '">' + esc(window.LH_I18N.t("news.seeOnFb")) + '</a>';
@@ -472,7 +472,7 @@
   function initImageFallback() {
     var PH = '<svg viewBox="0 0 64 64" class="img-ph-svg" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="rgba(255,255,255,.14)"/><ellipse cx="32" cy="16.5" rx="9" ry="3" fill="none" stroke="#FFC533" stroke-width="2.6"/><path d="M45 44H20a8 8 0 0 1-1.6-15.84A12 12 0 0 1 41.6 24 9 9 0 0 1 45 44Z" fill="rgba(255,255,255,.85)"/></svg>';
     function toPlaceholder(img) {
-      var host = img.closest(".vc-thumb, .sc-thumb, .gallery-item, .pc-media, .split-media, .hero-photo-frame, .nc-media, .activity-card");
+      var host = img.closest(".vc-thumb, .sc-thumb, .gallery-item, .pc-media, .split-media, .hero-photo-frame, .nc-media, .activity-card, .nd-hero");
       if (!host || host.dataset.phApplied) return;
       host.dataset.phApplied = "1";
       img.style.display = "none";
