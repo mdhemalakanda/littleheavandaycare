@@ -29,7 +29,7 @@ Permalinks marked ✔ were og-verified (canonical /reel/ ID confirmed against og
 | # | Type | Post / permalink | Date | Category | Site placement | Status |
 |---|---|---|---|---|---|---|
 | F1 | Reel | facebook.com/reel/1714043582992391 ✔ | 2026-09-28 | Admission | Videos, Admission, News, Home | Embedded (confirmed) |
-| F2 | Reel | facebook.com/reel/2704890733274188 ✔ | — | Admission | Videos | Embedded (confirmed) |
+| F2 | Reel | facebook.com/reel/2704890733274188 ✔ | — | Admission | Videos | BLOCKED BY FB — link card (FB refuses embed: "content owned by someone else", verified 2026-11-08) |
 | F3 | Reel | facebook.com/reel/2742547902778426 ✔ | — | Admission | Videos | Embedded (confirmed) |
 | F4 | Reel | facebook.com/reel/1665213335165756 ✔ | 2026-10-26 | About | Videos, News, Home | Embedded (confirmed) |
 | F5 | Reel | facebook.com/reel/24875344582134317 ✔ | — | About | Videos | Embedded (confirmed) |
